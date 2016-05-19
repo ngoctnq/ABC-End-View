@@ -165,19 +165,17 @@ if __name__ == "__main__" and is_input == True:
     else:
         diag = False
     #______________
-
+    
 # start initializing
 choices += 'X'
-counts = [0,0]  # trials and expansion counts
 
 def main():
-    shit_to_solve = [init_board(constraint, choices, diag)]
-    solutions_list = []
-    while len(shit_to_solve) != 0:
-        solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
+    result = solve(constraint, choices, diag)
+    solutions_list = result[0]
+    counts = result[1]
     for i in range(len(solutions_list)):
-        print 'Solution #'+str(i+1)
-        printOut(solutions_list[i])
+        print 'Solution #'+str(i+1)+"\n"
+        printOut(solutions_list[i], constraint)
         print
     print "total number of solutions:", len(solutions_list)
     print "total number of trials:", counts[0]
