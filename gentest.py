@@ -73,6 +73,7 @@ def reduce_constraints(constraint, choices, diag):
     cons = available_constraints(constraint)
     temp = ''
     pos_temp = [-1,-1,-1]
+    dim = len(constraint[0])
     while len(cons) > 0:
         if solvable_without_trials(constraint, choices, diag):
             pos = random.randrange(len(cons))
@@ -81,13 +82,16 @@ def reduce_constraints(constraint, choices, diag):
             constraint[cons[pos][0]][cons[pos][1]][cons[pos][2]] = ''
             del cons[pos]
         else:
+            if len(cons) == 4*dim:
+                print 'You\'re shit outta luck - this board can\'t be solved even with all clues.'
+                return
             constraint[pos_temp[0]][pos_temp[1]][pos_temp[2]] = temp
     if not solvable_without_trials(constraint, choices, diag):
         constraint[pos_temp[0]][pos_temp[1]][pos_temp[2]] = temp
 
 def test():
-    dim = 3
-    length_of_choices = 2
+    dim = 4
+    length_of_choices = 3
     bool_int = 0
     if bool_int == 0: 
         diag = False
@@ -97,6 +101,7 @@ def test():
     for i in range(length_of_choices):
         choices += chr(ord('A')+i)
     board = generate(dim, choices, diag)
+    printOut(board)
     constraint = generate_constraint(board)
     choices += 'X'
     reduce_constraints(constraint, choices, diag)

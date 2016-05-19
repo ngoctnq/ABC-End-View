@@ -281,7 +281,7 @@ def cancel_all(board, constraint, choices, diag):
                 # check diagonals
                 if diag:
                     xcount = 0
-                    xcout_pos = 0
+                    xcout_pos = []
                     for j in range(dim):
                         if board[j][j] == c:
                             xcount += 1
@@ -296,7 +296,7 @@ def cancel_all(board, constraint, choices, diag):
                             board[j][j] = 'X'
 
                     xcount = 0
-                    xcount_pos = 0
+                    xcount_pos = []
                     for j in range(dim):
                         if board[j][dim-1-j] == c:
                             xcount += 1
@@ -452,7 +452,7 @@ def init_board(constraint, choices, diag):
     return board
 
 # solve the puzzle with given parameters - choices is [trials_count, expansions_count]
-def solve(shit_to_solve, constraint, choices, diag, solutions_list, counts):
+def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts):
     board = shit_to_solve.pop()
     # counts are, respectively, trials and expansions counts.
     counts[0] += 1
