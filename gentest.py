@@ -107,3 +107,6 @@ def test():
     reduce_constraints(constraint, choices, diag)
     print constraint
     print init_board(constraint, choices, diag)
+
+if __name__ == "__main__":
+    test()
