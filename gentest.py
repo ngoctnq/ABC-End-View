@@ -2,9 +2,9 @@
 from utils import *
 
 def test():
-    dim = 4
+    dim = 5
     length_of_choices = 3
-    bool_int = 0
+    bool_int = 1
     # criteria = solvable_without_trials
     criteria = has_unique_solution
 

@@ -548,6 +548,7 @@ def reduce_constraints(constraint, choices, diag, criteria):
     pos_temp = [-1,-1,-1]
     dim = len(constraint[0])
     while len(cons) > 0:
+        print len(cons)
         if criteria(constraint, choices, diag):
             pos = random.randrange(len(cons))
             temp = constraint[cons[pos][0]][cons[pos][1]][cons[pos][2]]
@@ -581,6 +582,7 @@ def generate(dim, choices, diag):
         constraint[1].append(['',''])
     board = init_board(constraint, choices, diag)
     while not is_deadend(board):
+        printOut(board)
         avail = available_boxes(board)
         pos = avail[random.randrange(len(avail))]
         x = pos[0]
