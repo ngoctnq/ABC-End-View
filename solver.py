@@ -174,14 +174,14 @@ def main():
     shit_to_solve = [init_board(constraint, choices, diag)]
     solutions_list = []
     while len(shit_to_solve) != 0:
-        solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
+        solve(shit_to_solve, constraint, choices, diag, solutions_list, counts)
     for i in range(len(solutions_list)):
         print 'Solution #'+str(i+1)
         printOut(solutions_list[i])
         print
-    print "total number of solutions:", len(solutions_list)
-    print "total number of trials:", counts[0]
-    print "total number of expansions:", counts[1]
+    print "total number of solutions:", counts[0]
+    print "total number of trials:", counts[1]
+    print "total number of expansions:", len(solutions_list)
 
 def test():
     tic = default_timer()

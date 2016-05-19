@@ -188,7 +188,7 @@ def cancel_all(board, constraint, choices, diag):
                     if count == 1:
                         changed = True
                         board[i][lastAppeared] = c
-                        optimize(board,constraint,choices,diag,[i,lastAppeared])
+                        optimize(board,constraint,choices,[i,lastAppeared],diag)
                         cancel_all(board, constraint, choices, diag)
                         return
 
@@ -206,7 +206,7 @@ def cancel_all(board, constraint, choices, diag):
                     if count == 1:
                         changed = True
                         board[lastAppeared][i] = c
-                        optimize(board,constraint,choices,diag,[lastAppeared,i])
+                        optimize(board,constraint,choices,[lastAppeared,i],diag)
                         cancel_all(board, constraint, choices, diag)
                         return
 
@@ -224,7 +224,7 @@ def cancel_all(board, constraint, choices, diag):
                     if count == 1:
                         changed = True
                         board[lastAppeared][lastAppeared] = c
-                        optimize(board,constraint,choices,diag,[lastAppeared,lastAppeared])
+                        optimize(board,constraint,choices,[lastAppeared,lastAppeared],diag)
                         cancel_all(board, constraint, choices, diag)
                         return
 
@@ -240,78 +240,54 @@ def cancel_all(board, constraint, choices, diag):
                     if count == 1:
                         changed = True
                         board[lastAppeared][dim-1-lastAppeared] = c
-                        optimize(board,constraint,choices,diag,[lastAppeared,dim-1-lastAppeared])
+                        optimize(board,constraint,choices,[lastAppeared,dim-1-lastAppeared],diag)
                         cancel_all(board, constraint, choices, diag)
                         return
             else:
                 # check rows
                 for i in range(dim):
                     xcount = 0
-                    xcount_pos = []
                     for j in range(dim):
                         if board[i][j] == c:
                             xcount += 1
-                        if c in board[i][j]:
-                            xcount_pos.append(j)
                     if xcount == maxX:
                         for j in range(dim):
                             if board[i][j] != c:
                                 board[i][j] = board[i][j].replace(c,'')
-                    elif len(xcount_pos) == maxX:
-                        for j in xcount_pos:
-                            board[i][j] = 'X'
 
                 # check columns
                 for i in range(dim):
                     xcount = 0
-                    xcount_pos = []
                     for j in range(dim):
                         if board[j][i] == c:
                             xcount += 1
-                        if c in board[i][j]:
-                            xcount_pos.append(j)
                     if xcount == maxX:
                         for j in range(dim):
                             if board[j][i] != c:
                                 board[j][i] = board[j][i].replace(c,'')
-                    elif len(xcount_pos) == maxX:
-                        for j in xcount_pos:
-                            board[i][j] = 'X'
 
                 # check diagonals
                 if diag:
                     xcount = 0
-                    xcout_pos = []
                     for j in range(dim):
                         if board[j][j] == c:
                             xcount += 1
-                        if c in board[j][j]:
-                            xcount_pos.append(j)
                     if xcount == maxX:
                         for j in range(dim):
                             if board[j][j] != c:
                                 board[j][j] = board[j][j].replace(c,'')
-                    elif len(xcount_pos) == maxX:
-                        for j in xcount_pos:
-                            board[j][j] = 'X'
 
                     xcount = 0
-                    xcount_pos = []
                     for j in range(dim):
                         if board[j][dim-1-j] == c:
                             xcount += 1
-                        if c in board[j][j]:
-                            xcount_pos.append(j)
                     if xcount == maxX:
                         for j in range(dim):
                             if board[j][dim-1-j] != c:
                                 board[j][dim-1-j] = board[j][dim-1-j].replace(c,'')
-                    elif len(xcount_pos) == maxX:
-                        for j in xcount_pos:
-                            board[j][dim-1-j] = 'X'
 
 # considering a filled box of coord, do human stuff on the lines the box is in
-def optimize(board, constraint, choices, diag, coord):
+def optimize(board, constraint, choices, coord, diag):
     dim = len(board)
     if not is_legit(board, choices, diag):
         reset_board(board)
@@ -425,7 +401,7 @@ def mass_optimize(board, constraint, choices, diag):
     for i in range(dim):
         for j in range(dim):
             if len(board[i][j]) == 1:
-                optimize(board,constraint,choices,diag,[i,j])
+                optimize(board,constraint,choices,[i,j],diag)
 
 # make the initial board to be solved based on constraints and choices
 def init_board(constraint, choices, diag):
@@ -452,7 +428,7 @@ def init_board(constraint, choices, diag):
     return board
 
 # solve the puzzle with given parameters - choices is [trials_count, expansions_count]
-def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts):
+def solve(shit_to_solve, constraint, choices, diag, solutions_list, counts):
     board = shit_to_solve.pop()
     # counts are, respectively, trials and expansions counts.
     counts[0] += 1
@@ -483,8 +459,3 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
                 
                 shit_to_solve.append(board)
                 shit_to_solve.append(new_board)
-
-def solvable_without_trials(constraint, choices, diag):
-    board = init_board(constraint, choices, diag)
-    ret = is_legit(board, choices, diag) and is_deadend(board)
-    return ret
