@@ -181,7 +181,7 @@ def main():
     print "total number of trials:", counts[0]
     print "total number of expansions:", counts[1]
 
-def test():
+def test(main):
     tic = default_timer()
     # insert code to test here
     main()
@@ -189,7 +189,13 @@ def test():
     toc = default_timer()
     print "time taken in seconds:", toc-tic
 
+def check_if_sln_exists(dim = 8, choices = 'ABCDEFX'):
+    constraint = empty_constraint(dim)
+    board = init_board(constraint, choices, diag)
+    solutions_list = solve(constraint, choices, diag, True)[0]
+    printOut(solutions_list[0])
+
 # solving it
 if __name__ == "__main__":
     # main()
-    test()
+    test(check_if_sln_exists)

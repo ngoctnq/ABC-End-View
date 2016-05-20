@@ -2,6 +2,14 @@
 from copy import deepcopy
 import random
 
+# generate an empty constraint
+def empty_constraint(dim):
+    constraint = [[],[]]
+    for i in range(dim):
+        constraint[0].append(['',''])
+        constraint[1].append(['',''])
+    return constraint
+
 # fill X's into the board, in case the board is done for
 def reset_board(board):
     dim = len(board)
@@ -497,6 +505,7 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
                 new_board = deepcopy(board)
                 new_board[minc[0]][minc[1]] = new_board[minc[0]][minc[1]][0]
                 board[minc[0]][minc[1]] = board[minc[0]][minc[1]][1:]
+                
                 cancel_all(board, constraint, choices, diag)
                 cancel_all(new_board, constraint, choices, diag)
                 mass_optimize(board, constraint, choices, diag)
@@ -512,34 +521,29 @@ def solvable_without_trials(constraint, choices, diag):
     return ret
 
 # comprehensive solving
-def solve(constraint, choices, diag):
+def solve(constraint, choices, diag, short_circuit = False):
     shit_to_solve = [init_board(constraint, choices, diag)]
     # counts are trials and expansions, respectively
     counts = [0,0]
     solutions_list = []
-    while len(shit_to_solve) != 0:
+    while len(shit_to_solve) != 0 and (len(solutions_list) < 2 or not short_circuit):
         solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
     return [solutions_list, counts]
 
-# check if having unique solutions
-def has_unique_solution(constraint, choices, diag):
-    return 1 == len(solve(constraint, choices, diag)[0])
+# would stop abruptly if a second solution is found
+def solve_from_partial(board, constraint, choices, diag, short_circuit = False):
+    shit_to_solve = [board]
+    # counts are trials and expansions, respectively
+    counts = [0,0]
+    solutions_list = []
+    while len(shit_to_solve) != 0 and (len(solutions_list) < 2 or not short_circuit):
+        # printOut(shit_to_solve[0])
+        solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
+    return [solutions_list, counts]
 
-# if the generated board has something of the form
-    # A .
-    # . A
-    # then there would be no unique solutions even with all the clues.
-def is_ambiguous(board):
-    dim = len(board)
-    for i in range(dim-1):
-        for j in range(dim-1):
-            x = board[i][j]
-            y = board[i][j+1]
-            z = board[i+1][j]
-            t = board[i+1][j+1]
-            if (x == t and y == z and x != y and (x == 'X' or y == 'X')):
-                return True
-    return False
+# check if having unique solutions ?/ EXCEPTION for board being at bottom of param list
+def has_unique_solution(constraint, choices, diag):
+    return 1 == len(solve(constraint, choices, diag, True)[0])
 
 # keeps removing constraints til least solvable
 def reduce_constraints(constraint, choices, diag, criteria):
@@ -548,7 +552,7 @@ def reduce_constraints(constraint, choices, diag, criteria):
     pos_temp = [-1,-1,-1]
     dim = len(constraint[0])
     while len(cons) > 0:
-        print len(cons)
+        # print len(cons)
         if criteria(constraint, choices, diag):
             pos = random.randrange(len(cons))
             temp = constraint[cons[pos][0]][cons[pos][1]][cons[pos][2]]
@@ -573,26 +577,46 @@ def available_boxes(board):
                 ret.append([i,j])
     return ret
 
-# generate a board with given dimension and choices
-def generate(dim, choices, diag):
-    choices = choices.upper() + 'X'
-    constraint = [[],[]]
-    for i in range(dim):
-        constraint[0].append(['',''])
-        constraint[1].append(['',''])
+# NOT WORKING PROPERLY
+# generate a board with given dimension and choices, if not working, retry.
+def generate(dim, choices_no_x, diag, trials_count = 1):
+    choices = choices_no_x.upper() + 'X'
+    constraint = empty_constraint(dim)
     board = init_board(constraint, choices, diag)
-    while not is_deadend(board):
-        printOut(board)
-        avail = available_boxes(board)
-        pos = avail[random.randrange(len(avail))]
-        x = pos[0]
-        y = pos[1]
-        z = random.randrange(len(board[x][y]))
-        board[x][y] = board[x][y][z]
-        optimize(board, constraint, choices, diag, [x,y])
+    temp_board = None
+
+    if diag:
+        # generate main diagonal first
+        to_permute = list(choices + 'X'*(dim - len(choices)))
+        random.shuffle(to_permute)
+        for i in range(dim):
+            board[i][i] = to_permute[i]
+        cancel_all(board, constraint, choices, diag)
         mass_optimize(board, constraint, choices, diag)
-    return board
-    
+        # generate antidiagonal
+
+    while True:
+        deadend = is_deadend(board)
+        legit = is_legit(board, choices, diag)
+        if legit and not deadend:
+            # printOut(board)
+            temp_board = deepcopy(board)
+            avail = available_boxes(board)
+            pos = avail[random.randrange(len(avail))]
+            x = pos[0]
+            y = pos[1]
+            z = random.randrange(len(board[x][y]))
+            # print x,y,board[x][y][z]
+            board[x][y] = board[x][y][z]
+            optimize(board, constraint, choices, diag, [x,y])
+            mass_optimize(board, constraint, choices, diag)
+        elif legit:
+            return board
+        else:
+            printOut(temp_board)
+            printOut(board)
+            board = temp_board
+
 # generate full constraints for a given board
 def generate_constraint(board):
     dim = len(board[0])
@@ -635,3 +659,122 @@ def available_constraints(constraint):
                 if constraint[i][j][k] != '':
                     acc.append([i,j,k])
     return acc 
+
+# check if 2 boards are equal
+def equal(board1, board2):
+    dim = len(board1)
+    for i in range(dim):
+        for j in range(dim):
+            if board1[i][j]!=board2[i][j]:
+                return False
+    return True 
+
+# from this point onwards:
+# the equivalent of the solver, but in 1-D
+def sidequest(new_constraint, choices):
+    optimize_array(new_constraint, choices)
+    shit_to_solve = [new_constraint]
+    solutions_list = []
+    while len(shit_to_solve) != 0:
+        solve_array(shit_to_solve, choices, solutions_list)
+    return solutions_list
+
+def solve_array(shit_to_solve, choices, solutions_list):
+    # print len(shit_to_solve)
+    data = shit_to_solve.pop()
+    # print data
+    if not is_legit_array(data, choices):
+        return
+    if is_deadend_array(data):
+        solutions_list.append(data)
+        return
+    clone = deepcopy(data)
+    mindex = min_index(data)
+    if mindex == None:
+        return
+    data[mindex] = data[mindex][0]
+    clone[mindex] = clone[mindex][1:]
+    optimize_array(data, choices)
+    optimize_array(clone, choices)
+    shit_to_solve.append(clone)
+    shit_to_solve.append(data)
+
+def is_legit_array(board, choices):
+    dim = len(board)
+    maxX = dim-len(choices)+1
+    temp = ''
+    count = 0
+    for j in range(dim):
+        if board[j] == 'X':
+            count += 1
+        temp += board[j]
+    if count > maxX:
+        return False
+    for j in choices:
+        if j not in temp:
+            return False
+    if temp.count('X') < maxX:
+        return False
+    return True
+
+def optimize_array(board, choices):
+    dim = len(board)
+    maxX = dim - len(choices) + 1
+    changed = True
+    while changed:
+        changed = False
+        for c in choices:
+            if c != 'X':
+                count = 0
+                lastAppeared = -1
+                for i in range(dim):
+                    if c in board[i]:
+                        if c == board[i]:
+                            count = -1
+                            break
+                        count += 1
+                        lastAppeared = i
+                if count == 1 or count == -1:
+                    changed = True
+                    if count == 1:
+                        board[lastAppeared] = c
+                    for i in range(dim):
+                        if board[i] != c:
+                            board[i] = board[i].replace(c,'')
+                    return
+            else:
+                xcount = 0
+                xcount_pos = []
+                for i in range(dim):
+                    if board[i] == c:
+                        xcount += 1
+                    if c in board[i]:
+                        xcount_pos.append(i)
+                if xcount == maxX:
+                    for i in range(dim):
+                        if board[i] != c:
+                            board[i] = board[i].replace(c,'')
+                elif len(xcount_pos) == maxX:
+                    for i in xcount_pos:
+                        board[i] = 'X'
+
+def is_deadend_array(new_constraint):
+    for i in range(len(new_constraint)):
+        if len(new_constraint[i]) != 1:
+            return False
+    return True
+
+def min_index(new_constraint):
+    dim = len(new_constraint)
+    min_value = 10
+    index = None
+    for i in range(dim):
+        length = len(new_constraint[i])
+        if length == 2:
+            return i
+        else:
+            if length < min_value and length > 2:
+                min_value = length
+                index = i
+    return index
+
