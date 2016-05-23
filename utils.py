@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 from copy import deepcopy
+from timeit import default_timer
 import random
+from Tkinter import *
+import tkMessageBox
+import urllib2
+from bs4 import BeautifulSoup
 
 # generate an empty constraint
 def empty_constraint(dim):
@@ -580,10 +585,11 @@ def available_boxes(board):
 # NOT WORKING PROPERLY
 # generate a board with given dimension and choices, if not working, retry.
 def generate(dim, choices_no_x, diag, trials_count = 1):
+    tic = default_timer()
     choices = choices_no_x.upper() + 'X'
     constraint = empty_constraint(dim)
     board = init_board(constraint, choices, diag)
-    temp_board = None
+    # temp_board = None
 
     if diag:
         # generate main diagonal first
@@ -593,14 +599,14 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
             board[i][i] = to_permute[i]
         cancel_all(board, constraint, choices, diag)
         mass_optimize(board, constraint, choices, diag)
-        # generate antidiagonal
+        # do not generate antidiagonal, it can end up having zero solutions.
 
     while True:
         deadend = is_deadend(board)
         legit = is_legit(board, choices, diag)
         if legit and not deadend:
             # printOut(board)
-            temp_board = deepcopy(board)
+            # temp_board = deepcopy(board)
             avail = available_boxes(board)
             pos = avail[random.randrange(len(avail))]
             x = pos[0]
@@ -611,11 +617,17 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
             optimize(board, constraint, choices, diag, [x,y])
             mass_optimize(board, constraint, choices, diag)
         elif legit:
+            toc = default_timer()
+            print "taken",toc-tic,"seconds"
             return board
         else:
-            printOut(temp_board)
-            printOut(board)
-            board = temp_board
+            print "deadend, retrying..."
+            toc = default_timer()
+            print "taken",toc-tic,"seconds"
+            # printOut(temp_board)
+            # printOut(board)
+            # board = temp_board
+            return generate(dim, choices_no_x, diag, trials_count+1)
 
 # generate full constraints for a given board
 def generate_constraint(board):
@@ -668,6 +680,181 @@ def equal(board1, board2):
             if board1[i][j]!=board2[i][j]:
                 return False
     return True 
+
+# check if all are capital and sequential from A
+def not_cap_chars(word):
+    for i in range(len(word)):
+        if ord(word[i]) != ord('A')+i:
+            return True
+    return False
+
+# solver function - GUI asking for input
+def solver_gui():
+    print 'ABC ENDVIEW SOLVER'
+    print 
+
+    not_entered = True
+    while not_entered:
+        text = raw_input("Dimension (n x n)? ")
+        try:
+            dim = int(text)
+            not_entered = False
+            if dim < 2:
+                raise ValueError
+        except ValueError:
+            print "Value error!", "Dimension has to be an integer greater than 1!"
+
+    constraint = [[],[]]
+    for i in range(dim):
+        constraint[0].append(['',''])
+        constraint[1].append(['',''])
+    #______________
+    not_entered = True
+    while not_entered:
+        choices = raw_input("Characters to fill in, with no delimiters: ").upper()
+        if not_cap_chars(choices):
+            print "String error!", "Only sequencial capital letters are allowed."
+        elif len(choices) >= dim:
+            print "String error!", "Number of choices must be less than "+str(dim)+"."
+        else:
+            not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert row-beginning constraints - Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[0][i][0] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i]+" is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert row-ending constraints - Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[0][i][1] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i]+" is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert column-beginning constraints - Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[1][i][0] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i]+" is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert column-ending constraints - Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[1][i][1] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i]+" is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________     
+    not_entered = True
+    while not_entered:
+        not_entered = False
+        result = raw_input("Are diagonals required to have all characters? ").upper()
+        if result in ['YES','Y','1']:
+            diag = True
+        elif result in ['NO','N','0']:
+            diag = False
+        else:
+            print 'Not a valid answer!'
+            not_entered = True
+    #______________
+    # start initializing
+    choices += 'X'
+    result = solve(constraint, choices, diag)
+    solutions_list = result[0]
+    counts = result[1]
+    for i in range(len(solutions_list)):
+        print 'Solution #'+str(i+1)+"\n"
+        printOut(solutions_list[i], constraint)
+        print
+    print "total number of solutions:", len(solutions_list)
+    print "total number of trials:", counts[0]
+    print "total number of expansions:", counts[1]
+
+def solver_janko():
+    print 'Janko.at problem solver'
+    not_entered = True
+    while not_entered:
+        text = raw_input("Problem number? ")
+        try:
+            no = int(text)
+            if no > 530 or no < 1:
+                print 'Not a valid question number!'
+            else:
+                not_entered = False
+        except:
+            print 'Not a valid number!'
+    url = 'http://www.janko.at/Raetsel/Abc-End-View/'+str(no).zfill(3)+'.a.htm'
+    file = urllib2.urlopen(url)
+    html_doc = file.read()
+    soup = BeautifulSoup(html_doc, 'html.parser')
+    data = soup.data
+    print data
+
+    choices += 'X'
+    result = solve(constraint, choices, diag)
+    solutions_list = result[0]
+    counts = result[1]
+    for i in range(len(solutions_list)):
+        print 'Solution #'+str(i+1)+"\n"
+        printOut(solutions_list[i], constraint)
+        print
+    print "total number of solutions:", len(solutions_list)
+    print "total number of trials:", counts[0]
+    print "total number of expansions:", counts[1]
 
 # from this point onwards:
 # the equivalent of the solver, but in 1-D
@@ -778,3 +965,4 @@ def min_index(new_constraint):
                 index = i
     return index
 
+solver_janko()
