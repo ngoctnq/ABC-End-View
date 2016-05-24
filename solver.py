@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 from utils import *
 from timeit import default_timer
-from Tkinter import *
-import tkMessageBox
 
 # params: rows/columns, count, head/tail
 # problem 209
@@ -25,9 +23,13 @@ import tkMessageBox
 # choices = 'ABCD'
 
 # problem 77
-constraint = [[['F','C'], ['',''], ['A','C'], ['','D'], ['D','B'], ['D','B'], ['B','F'], ['','']],
-              [['','A'], ['',''], ['E','F'], ['D',''], ['F','E'], ['D','F'], ['','B'], ['','']]]
-choices = 'ABCDEF'
+# constraint = [[['F','C'], ['',''], ['A','C'], ['','D'], ['D','B'], ['D','B'], ['B','F'], ['','']],
+#               [['','A'], ['',''], ['E','F'], ['D',''], ['F','E'], ['D','F'], ['','B'], ['','']]]
+# choices = 'ABCDEF'
+
+# problem 480
+constraint = [[['B', 'C'], ['G', 'A'], ['A', 'E'], ['F', 'D'], ['C', 'B'], ['E', 'C'], ['D', 'F'], ['D', 'G']], [['', 'D'], ['G', 'F'], ['F', 'E'], ['D', 'B'], ['', ''], ['', 'C'], ['F', 'A'], ['C', 'G']]]
+choices = 'ABCDEFG'
 
 dim = len(constraint[0])
 diag = False
@@ -41,6 +43,7 @@ if is_input == True:
 choices += 'X'
 
 def main():
+    printOut(init_board(constraint, choices, diag))
     result = solve(constraint, choices, diag)
     solutions_list = result[0]
     counts = result[1]
