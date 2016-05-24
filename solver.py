@@ -15,9 +15,9 @@ import tkMessageBox
 # choices = 'AB'
 
 # problem 176
-constraint = [[['A',''],['','A'],['D',''],['',''],['','E'],['',''],],
-               [['','E'],['','B'],['E',''],['','D'],['C',''],['','C']]]
-choices = 'ABCDE'
+# constraint = [[['A',''],['','A'],['D',''],['',''],['','E'],['',''],],
+#                [['','E'],['','B'],['E',''],['','D'],['C',''],['','C']]]
+# choices = 'ABCDE'
 
 # last problem of the month
 # constraint = [[['',''], ['B',''], ['A',''], ['B',''], ['D','B'], ['B','A'], ['',''], ['','']],
@@ -25,146 +25,17 @@ choices = 'ABCDE'
 # choices = 'ABCD'
 
 # problem 77
-# constraint = [[['F','C'], ['',''], ['A','C'], ['','D'], ['D','B'], ['D','B'], ['B','F'], ['','']],
-#               [['','A'], ['',''], ['E','F'], ['D',''], ['F','E'], ['D','F'], ['','B'], ['','']]]
-# choices = 'ABCDEF'
+constraint = [[['F','C'], ['',''], ['A','C'], ['','D'], ['D','B'], ['D','B'], ['B','F'], ['','']],
+              [['','A'], ['',''], ['E','F'], ['D',''], ['F','E'], ['D','F'], ['','B'], ['','']]]
+choices = 'ABCDEF'
 
 dim = len(constraint[0])
-diag = True
+diag = False
 
 is_input = False
 # GUI to input problem
-if __name__ == "__main__" and is_input == True:
-    print 'ABC ENDVIEW SOLVER'
-    print 
-
-    not_entered = True
-    while not_entered:
-        text = raw_input("Dimension (n x n)? ")
-
-        try:
-            dim = int(text)
-            not_entered = False
-            if dim < 2:
-                raise ValueError
-        except ValueError:
-            print "Value error!", "Dimension has to be an integer greater than 1!"
-
-    constraint = [[],[]]
-    for i in range(dim):
-        constraint[0].append(['',''])
-        constraint[1].append(['',''])
-    #______________
-
-    def not_cap_chars(word):
-        for i in range(len(word)):
-            if ord(word[i]) != ord('A')+i:
-                return True
-        return False
-
-    not_entered = True
-    while not_entered:
-        choices = raw_input("Characters to fill in, with no delimiters: ").upper()
-        if not_cap_chars(choices):
-            print "String error!", "Only sequencial capital letters are allowed."
-        elif len(choices) >= dim:
-            print "String error!", "Number of choices must be less than "+str(dim)+"."
-        else:
-            not_entered = False
-    #______________
-
-    not_entered = True
-    while not_entered:
-        constraint_sub = raw_input("Insert row-beginning constraints - Continuously, '-' for none: ").upper()
-        if len(constraint_sub) != dim:
-            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
-        else:
-            legit = True
-            while legit:
-                for i in range(dim):
-                    if constraint_sub[i] in choices:
-                        constraint[0][i][0] = constraint_sub[i]
-                    elif constraint_sub[i] != '-':
-                        legit = False
-                        print "String error!", constraint_sub[i]+" is not a valid entry!"
-                        break
-                if i == dim-1:
-                    break
-            if legit:
-                not_entered = False
-    #______________
-
-    not_entered = True
-    while not_entered:
-        constraint_sub = raw_input("Insert row-ending constraints - Continuously, '-' for none: ").upper()
-        if len(constraint_sub) != dim:
-            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
-        else:
-            legit = True
-            while legit:
-                for i in range(dim):
-                    if constraint_sub[i] in choices:
-                        constraint[0][i][1] = constraint_sub[i]
-                    elif constraint_sub[i] != '-':
-                        legit = False
-                        print "String error!", constraint_sub[i]+" is not a valid entry!"
-                        break
-                if i == dim-1:
-                    break
-            if legit:
-                not_entered = False
-    #______________
-
-    not_entered = True
-    while not_entered:
-        constraint_sub = raw_input("Insert column-beginning constraints - Continuously, '-' for none: ").upper()
-        if len(constraint_sub) != dim:
-            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
-        else:
-            legit = True
-            while legit:
-                for i in range(dim):
-                    if constraint_sub[i] in choices:
-                        constraint[1][i][0] = constraint_sub[i]
-                    elif constraint_sub[i] != '-':
-                        legit = False
-                        print "String error!", constraint_sub[i]+" is not a valid entry!"
-                        break
-                if i == dim-1:
-                    break
-            if legit:
-                not_entered = False
-    #______________
-
-    not_entered = True
-    while not_entered:
-        constraint_sub = raw_input("Insert column-ending constraints - Continuously, '-' for none: ").upper()
-        if len(constraint_sub) != dim:
-            print "Constraints error!", "Number of constraints must be exactly "+str(dim)+"."
-        else:
-            legit = True
-            while legit:
-                for i in range(dim):
-                    if constraint_sub[i] in choices:
-                        constraint[1][i][1] = constraint_sub[i]
-                    elif constraint_sub[i] != '-':
-                        legit = False
-                        print "String error!", constraint_sub[i]+" is not a valid entry!"
-                        break
-                if i == dim-1:
-                    break
-            if legit:
-                not_entered = False
-    #______________
-                
-    root = Tk()
-    root.withdraw()
-    result = tkMessageBox.askquestion("ABC End View Solver", "Are diagonals required to have all characters?")
-    if result == 'yes':
-        diag = True
-    else:
-        diag = False
-    #______________
+if is_input == True:
+    solver()
     
 # start initializing
 choices += 'X'
@@ -196,6 +67,6 @@ def check_if_sln_exists(dim = 8, choices = 'ABCDEFX'):
     printOut(solutions_list[0])
 
 # solving it
-if __name__ == "__main__":
-    # main()
-    test(check_if_sln_exists)
+# main()
+# test(check_if_sln_exists)
+test(main)
