@@ -30,6 +30,7 @@ def test(dim = 5, length_of_choices = 3, bool_int = 0, criteria = has_unique_sol
     generation_count += 1
     constraint = generate_constraint(board)
     while not has_unique_solution(constraint, choices, diag):
+        print 'trying... - the',generation_count,'time'
         board = generate(dim, choices_no_x, diag)
         # printOut(board)
         generation_count += 1

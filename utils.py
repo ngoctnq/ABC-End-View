@@ -528,6 +528,7 @@ def solvable_without_trials(constraint, choices, diag):
 # comprehensive solving
 def solve(constraint, choices, diag, short_circuit = False):
     shit_to_solve = [init_board(constraint, choices, diag)]
+    # printOut(shit_to_solve[0])
     # counts are trials and expansions, respectively
     counts = [0,0]
     solutions_list = []
@@ -618,12 +619,12 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
             mass_optimize(board, constraint, choices, diag)
         elif legit:
             toc = default_timer()
-            print "taken",toc-tic,"seconds"
+            # print "taken",toc-tic,"seconds"
             return board
         else:
             print "deadend, retrying..."
             toc = default_timer()
-            print "taken",toc-tic,"seconds"
+            # print "taken",toc-tic,"seconds"
             # printOut(temp_board)
             # printOut(board)
             # board = temp_board
@@ -824,76 +825,90 @@ def solver_gui():
     print "total number of trials:", counts[0]
     print "total number of expansions:", counts[1]
 
-def solver_janko(pass_on = False):
-    print 'Janko.at problem solver'
-    not_entered = True
-    while not_entered:
-        text = raw_input("Problem number? ")
-        try:
-            no = int(text)
-            if no > 530 or no < 1:
-                print 'Not a valid question number!'
-            else:
-                not_entered = False
-        except:
-            print 'Not a valid number!'
+def solver_janko(no = 0, pass_on = False):
+    if no == 0:
+        print 'Janko.at problem solver'
+        not_entered = True
+        while not_entered:
+            text = raw_input("Problem number? ")
+            try:
+                no = int(text)
+                if no > 530 or no < 1:
+                    print 'Not a valid question number!'
+                else:
+                    not_entered = False
+            except:
+                print 'Not a valid number!'
+
     url = 'http://www.janko.at/Raetsel/Abc-End-View/'+str(no).zfill(3)+'.a.htm'
     file = urllib2.urlopen(url)
     html_doc = file.read()
     soup = BeautifulSoup(html_doc, 'html.parser')
     data = soup.data.get_text().split('\n')
     
-    del data[0]
-    while data[0].split()[0] != 'size':
-        del data[0]
-    dim = int(data[0].split()[1])
-    del data[0]
-    depth = int(data[0].split()[1])
     choices = ''
-    for i in range(depth):
-        choices += chr(ord('A')+i)
-    del data[0]
     diag = False
-    if data[0].split()[0] == 'options':
-        diag = True
-        del data[0]
-    del data[0]
-
     constraint = [[],[]]
-    for i in range(dim):
-        constraint[0].append(['',''])
-        constraint[1].append(['',''])
-    # constraints: top -> bottom -> filler -> left -> right
-    topConstraint = data[0].upper().encode('ascii','ignore').split()
-    for i in range(dim):
-        if topConstraint[i] != '-':
-            constraint[1][i][0] = topConstraint[i]
-    del data[0]
-    del topConstraint
-    #__________
-    bottomConstraint = data[0].upper().encode('ascii','ignore').split()
-    for i in range(dim):
-        if bottomConstraint[i] != '-':
-            constraint[1][i][1] = bottomConstraint[i]
-    del data[0]
-    del data[0]
-    del bottomConstraint
-    #__________
-    leftConstraint = data[0].upper().encode('ascii','ignore').split()
-    for i in range(dim):
-        if leftConstraint[i] != '-':
-            constraint[0][i][0] = leftConstraint[i]
-    del data[0]
-    del leftConstraint
-    #__________
-    rightConstraint = data[0].upper().encode('ascii','ignore').split()
-    for i in range(dim):
-        if rightConstraint[i] != '-':
-            constraint[0][i][1] = rightConstraint[i]
-    del data[0]
-    del data[0]
-    del rightConstraint
+        
+    attributes = ['size','depth','options','clabels','rlabels']
+    while len(data) > 0:
+        while len(data) > 0:
+            if len(data[0]) == 0 or data[0].split()[0] not in attributes:
+                print len(data), len(data[0])
+                del data[0]
+            else:
+                break
+        if data[0].split()[0] == 'size':
+            dim = int(data[0].split()[1])
+            for i in range(dim):
+                constraint[0].append(['',''])
+                constraint[1].append(['',''])
+            attributes.remove('size')
+        if data[0].split()[0] == 'depth':
+            depth = int(data[0].split()[1])
+            attributes.remove('depth')
+            for i in range(depth):
+                choices += chr(ord('A')+i)
+        if data[0].split()[0] == 'options':
+            attributes.remove('options')
+            diag = True
+        # top/bottom
+        if data[0].split()[0] == 'clabels':
+            attributes.remove('clabels')
+            del data[0]
+            topConstraint = data[0].upper().encode('ascii','ignore').split()
+            for i in range(dim):
+                if topConstraint[i] != '-':
+                    constraint[1][i][0] = topConstraint[i]
+            del data[0]
+            del topConstraint
+            #__________
+            bottomConstraint = data[0].upper().encode('ascii','ignore').split()
+            for i in range(dim):
+                if bottomConstraint[i] != '-':
+                    constraint[1][i][1] = bottomConstraint[i]
+            del data[0]
+            del bottomConstraint
+            #__________
+        # left/right
+        if data[0].split()[0] == 'rlabels':
+            attributes.remove('rlabels')
+            del data[0]
+            leftConstraint = data[0].upper().encode('ascii','ignore').split()
+            for i in range(dim):
+                if leftConstraint[i] != '-':
+                    constraint[0][i][0] = leftConstraint[i]
+            del data[0]
+            del leftConstraint
+            #__________
+            rightConstraint = data[0].upper().encode('ascii','ignore').split()
+            for i in range(dim):
+                if rightConstraint[i] != '-':
+                    constraint[0][i][1] = rightConstraint[i]
+            del data[0]
+            del rightConstraint
 
+    print constraint
     choices += 'X'
     result = solve(constraint, choices, diag)
     if pass_on:
@@ -1020,3 +1035,4 @@ def min_index(new_constraint):
 
 if __name__ == '__main__':
     solver_janko()
+    # solver_gui()
