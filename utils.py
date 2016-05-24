@@ -824,7 +824,7 @@ def solver_gui():
     print "total number of trials:", counts[0]
     print "total number of expansions:", counts[1]
 
-def solver_janko():
+def solver_janko(pass_on = False):
     print 'Janko.at problem solver'
     not_entered = True
     while not_entered:
@@ -841,20 +841,73 @@ def solver_janko():
     file = urllib2.urlopen(url)
     html_doc = file.read()
     soup = BeautifulSoup(html_doc, 'html.parser')
-    data = soup.data
-    print data
+    data = soup.data.get_text().split('\n')
+    
+    del data[0]
+    while data[0].split()[0] != 'size':
+        del data[0]
+    dim = int(data[0].split()[1])
+    del data[0]
+    depth = int(data[0].split()[1])
+    choices = ''
+    for i in range(depth):
+        choices += chr(ord('A')+i)
+    del data[0]
+    diag = False
+    if data[0].split()[0] == 'options':
+        diag = True
+        del data[0]
+    del data[0]
+
+    constraint = [[],[]]
+    for i in range(dim):
+        constraint[0].append(['',''])
+        constraint[1].append(['',''])
+    # constraints: top -> bottom -> filler -> left -> right
+    topConstraint = data[0].upper().encode('ascii','ignore').split()
+    for i in range(dim):
+        if topConstraint[i] != '-':
+            constraint[1][i][0] = topConstraint[i]
+    del data[0]
+    del topConstraint
+    #__________
+    bottomConstraint = data[0].upper().encode('ascii','ignore').split()
+    for i in range(dim):
+        if bottomConstraint[i] != '-':
+            constraint[1][i][1] = bottomConstraint[i]
+    del data[0]
+    del data[0]
+    del bottomConstraint
+    #__________
+    leftConstraint = data[0].upper().encode('ascii','ignore').split()
+    for i in range(dim):
+        if leftConstraint[i] != '-':
+            constraint[0][i][0] = leftConstraint[i]
+    del data[0]
+    del leftConstraint
+    #__________
+    rightConstraint = data[0].upper().encode('ascii','ignore').split()
+    for i in range(dim):
+        if rightConstraint[i] != '-':
+            constraint[0][i][1] = rightConstraint[i]
+    del data[0]
+    del data[0]
+    del rightConstraint
 
     choices += 'X'
     result = solve(constraint, choices, diag)
-    solutions_list = result[0]
-    counts = result[1]
-    for i in range(len(solutions_list)):
-        print 'Solution #'+str(i+1)+"\n"
-        printOut(solutions_list[i], constraint)
-        print
-    print "total number of solutions:", len(solutions_list)
-    print "total number of trials:", counts[0]
-    print "total number of expansions:", counts[1]
+    if pass_on:
+        return result
+    else:
+        solutions_list = result[0]
+        counts = result[1]
+        for i in range(len(solutions_list)):
+            print 'Solution #'+str(i+1)+"\n"
+            printOut(solutions_list[i], constraint)
+            print
+        print "total number of solutions:", len(solutions_list)
+        print "total number of trials:", counts[0]
+        print "total number of expansions:", counts[1]
 
 # from this point onwards:
 # the equivalent of the solver, but in 1-D
@@ -965,4 +1018,5 @@ def min_index(new_constraint):
                 index = i
     return index
 
-solver_janko()
+if __name__ == '__main__':
+    solver_janko()
