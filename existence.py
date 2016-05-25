@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from utils import *
 
 def test(dim = 5, length_of_choices = 4, bool_int = 0):

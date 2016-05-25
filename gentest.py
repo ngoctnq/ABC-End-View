@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from utils import *
 
 def board_generator(dim = 5, length_of_choices = 3, bool_int = 0, \

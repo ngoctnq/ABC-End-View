@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from copy import deepcopy
 from timeit import default_timer
 import random
