@@ -451,13 +451,16 @@ def printOut(board, constraint = None):
 # call optimize on all filled boxes
 def mass_optimize(board, constraint, choices, diag):
     dim = len(board)
-    if not is_legit(board, choices, diag):
-        reset_board(board)
-        return
-    for i in range(dim):
-        for j in range(dim):
-            if len(board[i][j]) == 1:
-                optimize(board,constraint,choices,diag,[i,j])
+    # do it twice - hacky af but it kinda works?...
+    # too lazy to mark where things changed anyway
+    for i in range(2):
+        if not is_legit(board, choices, diag):
+            reset_board(board)
+            return
+        for i in range(dim):
+            for j in range(dim):
+                if len(board[i][j]) == 1:
+                    optimize(board,constraint,choices,diag,[i,j])
 
 # make the initial board to be solved based on constraints and choices
 def init_board(constraint, choices, diag):
@@ -590,7 +593,8 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
     constraint = empty_constraint(dim)
     board = init_board(constraint, choices, diag)
     # temp_board = None
-
+    clue_count = 0
+    
     if diag:
         # generate main diagonal first
         to_permute = list(choices + 'X'*(dim - len(choices)))
@@ -605,6 +609,7 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
         deadend = is_deadend(board)
         legit = is_legit(board, choices, diag)
         if legit and not deadend:
+            clue_count += 1
             # printOut(board)
             # temp_board = deepcopy(board)
             avail = available_boxes(board)
@@ -618,10 +623,11 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
             mass_optimize(board, constraint, choices, diag)
         elif legit:
             toc = default_timer()
+            print clue_count
             # print "taken",toc-tic,"seconds"
             return board
         else:
-            print "deadend, retrying..."
+            print clue_count, "deadend, retrying..."
             toc = default_timer()
             # print "taken",toc-tic,"seconds"
             # printOut(temp_board)
@@ -714,8 +720,8 @@ def solver_gui():
         choices = raw_input("Characters to fill in, with no delimiters: ").upper()
         if not_cap_chars(choices):
             print "String error!", "Only sequencial capital letters are allowed."
-        elif len(choices) >= dim:
-            print "String error!", "Number of choices must be less than "+str(dim)+"."
+        elif len(choices) > dim:
+            print "String error!", "Number of choices must be less than or equal to "+str(dim)+"."
         else:
             not_entered = False
     #______________
@@ -810,10 +816,50 @@ def solver_gui():
         else:
             print 'Not a valid answer!'
             not_entered = True
-    #______________
     # start initializing
-    choices += 'X'
-    result = solve(constraint, choices, diag)
+    if dim > len(choices):
+        choices += 'X'
+    #______________
+    not_entered = True
+    while not_entered:
+        not_entered = False
+        result = raw_input("Are there prefilled boxes? ").upper()
+        if result in ['YES','Y','1']:
+            partial = True
+        elif result in ['NO','N','0']:
+            partial = False
+        else:
+            print 'Not a valid answer!'
+            not_entered = True
+    #______________
+    if not partial:
+        result = solve(constraint, choices, diag)
+    else:
+        board = init_board(constraint, choices, diag)
+        print "Input coordinates and value, blankspace-separated; blank to end."
+        while True:
+            result = raw_input().upper()
+            if result == '':
+                break
+            else:
+                try:
+                    clues = result.split()
+                    if len(clues) != 3:
+                        raise ValueError
+                    i = int(clues[0])-1
+                    j = int(clues[1])-1
+                    if len(clues[2])!= 1 or clues[2] == 'X' or clues[2] not in choices:
+                        raise ValueError
+                    if i<0 or j<0 or i>=dim or j>=dim:
+                        raise ValueError
+                    board[i][j] = clues[2]
+                except:
+                    print 'Not a valid input! Ignored last input.'
+        print 'All input taken! Solving...'
+        cancel_all(board, constraint, choices, diag)
+        mass_optimize(board, constraint, choices, diag)
+        result = solve_from_partial(board, constraint, choices, diag)
+                
     solutions_list = result[0]
     counts = result[1]
     for i in range(len(solutions_list)):
