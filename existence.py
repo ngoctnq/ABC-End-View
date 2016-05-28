@@ -3,7 +3,6 @@ from utils import *
 
 def test(dim = 5, length_of_choices = 4, bool_int = 0):
     constraint = empty_constraint(dim)
-    generation_count = 0
     if bool_int == 0:
         diag = False
     else:
@@ -29,7 +28,7 @@ def test(dim = 5, length_of_choices = 4, bool_int = 0):
         pos = random.randrange(len(data))
         for i in range(dim):
             board[i][dim-1-i] = data[pos][i]
-    
+
     to_permute = list(choices + 'X'*(dim - len(choices)))
     random.shuffle(to_permute)
     for i in range(dim):

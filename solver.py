@@ -64,9 +64,9 @@ def check_if_sln_exists(dim = 8, choices = 'ABCDEFX'):
 
 is_input = False
 # GUI to input problem
-if is_input == True:
+if is_input is True:
     solver()
-else:   
+else:
     # solving it
     # main()
     # test(check_if_sln_exists)

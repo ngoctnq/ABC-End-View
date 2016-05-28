@@ -24,14 +24,14 @@ def solver_janko(no = 0, pass_on = False):
     html_doc = file.read()
     soup = BeautifulSoup(html_doc, 'html.parser')
     data = soup.data.get_text().split('\n')
-    
+
     choices = ''
     diag = False
     constraint = [[],[]]
     partial = False
     del data[0]
     del data[-1]
-        
+
     attributes = ['size','depth','options','clabels','rlabels','problem']
     while True:
         while len(data) > 0:
@@ -106,7 +106,7 @@ def solver_janko(no = 0, pass_on = False):
                         board[i][j] = clues[j]
             cancel_all(board, constraint, choices, diag)
             mass_optimize(board, constraint, choices, diag)
-            
+
     #print constraint, partial, choices
     if not partial:
         result = solve(constraint, choices, diag)
@@ -142,7 +142,7 @@ def janko_mass_solve(file_name = 'janko_time', file_mode = 'r+', skip = True):
             f.write(str(detail[0]).ljust(12))
             f.write(str(detail[1]).ljust(12))
             f.write('\n')
-    
+
         f.close()
     except:
         f.close()
@@ -160,5 +160,5 @@ if __name__ == '__main__':
         sys.stdout = f
         printOut(result[0][i])
         f.close()
-        
+
     sys.stdout = orig_stdout

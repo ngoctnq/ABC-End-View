@@ -1,9 +1,7 @@
 #!/usr/bin/env python2
 from copy import deepcopy
-from timeit import default_timer
+# from timeit import default_timer          # for testing/timing purposes
 import random
-import urllib2
-from bs4 import BeautifulSoup
 
 # generate an empty constraint
 def empty_constraint(dim):
@@ -82,7 +80,7 @@ def is_legit(board, choices, diag):
             return False
         for j in choices:
             if j not in temp:
-                return False   
+                return False
 
     # check diagonals
     if diag:
@@ -108,7 +106,7 @@ def is_legit(board, choices, diag):
             return False
         for j in choices:
             if j not in temp:
-                return False   
+                return False
 
     return True
 
@@ -293,7 +291,7 @@ def cancel_all(board, constraint, choices, diag):
                 # check diagonals
                 if diag:
                     xcount = 0
-                    xcout_pos = []
+                    xcount_pos = []
                     for j in range(dim):
                         if board[j][j] == c:
                             xcount += 1
@@ -423,7 +421,7 @@ def printOut(board, constraint = None):
         for j in range(dim):
             if maxChar < len(board[i][j]):
                 maxChar = len(board[i][j])
-    
+
     print '   ',
     for i in range(dim):
         print constraint[1][i][0].center(maxChar),
@@ -497,8 +495,8 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
         if is_deadend(board):
             # then it is a solution
             solutions_list.append(board)
-        
-            # if short_circuit:    
+
+            # if short_circuit:
             #     shit_to_solve[:] = []
             #     return
         else:
@@ -512,12 +510,12 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
                 new_board = deepcopy(board)
                 new_board[minc[0]][minc[1]] = new_board[minc[0]][minc[1]][0]
                 board[minc[0]][minc[1]] = board[minc[0]][minc[1]][1:]
-                
+
                 cancel_all(board, constraint, choices, diag)
                 cancel_all(new_board, constraint, choices, diag)
                 mass_optimize(board, constraint, choices, diag)
                 mass_optimize(new_board, constraint, choices, diag)
-                
+
                 shit_to_solve.append(board)
                 shit_to_solve.append(new_board)
 
@@ -588,13 +586,13 @@ def available_boxes(board):
 # NOT WORKING PROPERLY
 # generate a board with given dimension and choices, if not working, retry.
 def generate(dim, choices_no_x, diag, trials_count = 1):
-    tic = default_timer()
+    # tic = default_timer()
     choices = choices_no_x.upper() + 'X'
     constraint = empty_constraint(dim)
     board = init_board(constraint, choices, diag)
     # temp_board = None
     clue_count = 0
-    
+
     if diag:
         # generate main diagonal first
         to_permute = list(choices + 'X'*(dim - len(choices)))
@@ -622,13 +620,13 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
             optimize(board, constraint, choices, diag, [x,y])
             mass_optimize(board, constraint, choices, diag)
         elif legit:
-            toc = default_timer()
+            # toc = default_timer()
             print clue_count
             # print "taken",toc-tic,"seconds"
             return board
         else:
             print clue_count, "deadend, retrying..."
-            toc = default_timer()
+            # toc = default_timer()
             # print "taken",toc-tic,"seconds"
             # printOut(temp_board)
             # printOut(board)
@@ -676,7 +674,7 @@ def available_constraints(constraint):
             for k in range(2):
                 if constraint[i][j][k] != '':
                     acc.append([i,j,k])
-    return acc 
+    return acc
 
 # check if 2 boards are equal
 def equal(board1, board2):
@@ -685,7 +683,7 @@ def equal(board1, board2):
         for j in range(dim):
             if board1[i][j]!=board2[i][j]:
                 return False
-    return True 
+    return True
 
 # check if all are capital and sequential from A
 def not_cap_chars(word):
@@ -697,7 +695,7 @@ def not_cap_chars(word):
 # solver function - GUI asking for input
 def solver_gui():
     print 'ABC ENDVIEW SOLVER'
-    print 
+    print
 
     not_entered = True
     while not_entered:
@@ -804,7 +802,7 @@ def solver_gui():
                     break
             if legit:
                 not_entered = False
-    #______________     
+    #______________
     not_entered = True
     while not_entered:
         not_entered = False
@@ -859,7 +857,7 @@ def solver_gui():
         cancel_all(board, constraint, choices, diag)
         mass_optimize(board, constraint, choices, diag)
         result = solve_from_partial(board, constraint, choices, diag)
-                
+
     solutions_list = result[0]
     counts = result[1]
     for i in range(len(solutions_list)):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 from utils import *
 
-def board_generator(dim = 5, length_of_choices = 3, bool_int = 0, \
+def board_generator(dim = 5, length_of_choices = 3, bool_int = 0,
                     criteria = has_unique_solution, test = False):
     # criteria = solvable_without_trials
     # criteria = has_unique_solution
@@ -10,9 +10,9 @@ def board_generator(dim = 5, length_of_choices = 3, bool_int = 0, \
     # for i in range(dim):
     #     constraint[0].append(['',''])
     #     constraint[1].append(['',''])
-    
+
     generation_count = 0
-    if bool_int == 0: 
+    if bool_int == 0:
         diag = False
     else:
         diag = True
