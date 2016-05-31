@@ -1,3 +1,0 @@
-static evaluation: evaluation at current point as time is running out, rather than keep going to terminal state
-progressive deepening: reorder subtrees in order of favor - save time with DFS. static evaluation at every point, but does not matter as total no of evals scales by order.
-__constraint

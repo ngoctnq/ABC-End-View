@@ -64,14 +64,20 @@ def solver_janko(no = 0, pass_on = False):
             topConstraint = data[0].upper().encode('ascii','ignore').split()
             for i in range(dim):
                 if topConstraint[i] != '-':
-                    constraint[1][i][0] = topConstraint[i]
+                    try:
+                        constraint[1][i][0] = chr(int(topConstraint[i])+ord('A')-1)
+                    except:
+                        constraint[1][i][0] = topConstraint[i]
             del data[0]
             del topConstraint
             #__________
             bottomConstraint = data[0].upper().encode('ascii','ignore').split()
             for i in range(dim):
                 if bottomConstraint[i] != '-':
-                    constraint[1][i][1] = bottomConstraint[i]
+                    try:
+                        constraint[1][i][1] = chr(int(bottomConstraint[i])+ord('A')-1)
+                    except:
+                        constraint[1][i][1] = bottomConstraint[i]
             del data[0]
             del bottomConstraint
             #__________
@@ -82,14 +88,20 @@ def solver_janko(no = 0, pass_on = False):
             leftConstraint = data[0].upper().encode('ascii','ignore').split()
             for i in range(dim):
                 if leftConstraint[i] != '-':
-                    constraint[0][i][0] = leftConstraint[i]
+                    try:
+                        constraint[0][i][0] = chr(int(leftConstraint[i])+ord('A')-1)
+                    except:
+                        constraint[0][i][0] = leftConstraint[i]
             del data[0]
             del leftConstraint
             #__________
             rightConstraint = data[0].upper().encode('ascii','ignore').split()
             for i in range(dim):
                 if rightConstraint[i] != '-':
-                    constraint[0][i][1] = rightConstraint[i]
+                    try:
+                        constraint[0][i][1] = chr(int(rightConstraint[i])+ord('A')-1)
+                    except:
+                        constraint[0][i][1] = rightConstraint[i]
             del data[0]
             del rightConstraint
         # problem lmao
@@ -107,7 +119,7 @@ def solver_janko(no = 0, pass_on = False):
             cancel_all(board, constraint, choices, diag)
             mass_optimize(board, constraint, choices, diag)
 
-    #print constraint, partial, choices
+    # print constraint, partial, choices
     if not partial:
         result = solve(constraint, choices, diag)
     else:
@@ -148,7 +160,7 @@ def janko_mass_solve(file_name = 'janko_time', file_mode = 'r+', skip = True):
         f.close()
         raise
 
-if __name__ == '__main__':
+def solve_480():
     orig_stdout = sys.stdout
     result = solver_janko(480, True)
     f = open('480_general','w')
