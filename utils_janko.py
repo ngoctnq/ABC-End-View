@@ -137,7 +137,7 @@ def solver_janko(no = 0, pass_on = False):
         print "total number of trials:", counts[0]
         print "total number of expansions:", counts[1]
 
-def janko_mass_solve(file_name = 'janko_time', file_mode = 'r+', skip = True):
+def janko_mass_solve(file_name = 'janko_time', file_mode = 'w', skip = True):
     try:
         f = open(file_name, file_mode)
         f.write('Problem no. No. of slns Trials      Expansions\n')

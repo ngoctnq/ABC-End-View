@@ -479,6 +479,75 @@ def init_board(constraint, choices, diag):
         for j in range(0, len(choices)-2):
             board[i][j] = board[i][j].replace(constraint[0][i][1],'')
             board[j][i] = board[j][i].replace(constraint[1][i][1],'')
+
+    # clear maxX
+    maxX = dim - len(choices) + 1
+    # left
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[0][i][0] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[0][i][0] != '' and constraint[0][i][0] not in gotX:
+                board[i][0] = constraint[0][i][0]
+    # right
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[0][i][1] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[0][i][1] != '' and constraint[0][i][1] not in gotX:
+                board[i][dim-1] = constraint[0][i][1]
+    # top
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[1][i][0] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[1][i][0] != '' and constraint[1][i][0] not in gotX:
+                board[0][i] = constraint[1][i][0]
+    # bottom
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[1][i][1] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[1][i][1] != '' and constraint[1][i][1] not in gotX:
+                board[dim-1][i] = constraint[1][i][1]
+    # printOut(board, constraint)
+    
     # check only case
     cancel_all(board, constraint, choices, diag)
     mass_optimize(board, constraint, choices, diag)
