@@ -4,6 +4,35 @@ from bs4 import BeautifulSoup
 from utils import *
 import sys
 
+stat = {}
+
+def constraint_count(constraint):
+    count = 0
+    dim = len(constraint[0])
+    for i in range(2):
+        for j in range(dim):
+            for k in range(2):
+                if constraint[i][j][k] != '':
+                    count += 1
+    return count
+
+def add_stat(constraint, choices, diag, partial):
+    if diag:
+        diagi = 1
+    else:
+        diagi = 0
+    if partial:
+        partiali = 1
+    else:
+        partiali = 0
+    try:
+        stat[(len(constraint[0]),len(choices)-1,diagi,partiali)] =\
+        min(constraint_count(constraint),
+            stat[((len(constraint[0]),len(choices)-1,diagi,partiali))])
+    except:
+        stat[(len(constraint[0]),len(choices)-1,diagi,partiali)] =\
+        constraint_count(constraint)
+
 def solver_janko(no = 0, pass_on = False):
     if no == 0:
         print 'Janko.at problem solver'
@@ -119,7 +148,10 @@ def solver_janko(no = 0, pass_on = False):
             cancel_all(board, constraint, choices, diag)
             mass_optimize(board, constraint, choices, diag)
 
+    add_stat(constraint, choices, diag, partial)
+    
     # print constraint, partial, choices
+    # printOut(init_board(constraint, choices, diag))
     if not partial:
         result = solve(constraint, choices, diag)
     else:
@@ -174,3 +206,24 @@ def solve_480():
         f.close()
 
     sys.stdout = orig_stdout
+
+def solve_480_with_sort():
+    result = solver_janko(480, True)
+    print 'stat', result[1]
+    solutions_list = result[0]
+    solutions_list.sort()
+    duplicate = 0
+    for i in range(len(solutions_list)-1):
+        if solutions_list[i] == solutions_list[i+1]:
+            duplicate += 1
+    print 'duplicate', duplicate
+
+def janko_mass_stat():
+    for i in range(530):
+        i += 1
+        if i == 480:
+            continue
+        print i
+        solution = solver_janko(i, True)
+    for i in stat:
+        print stat[i]

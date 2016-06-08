@@ -553,6 +553,15 @@ def init_board(constraint, choices, diag):
     mass_optimize(board, constraint, choices, diag)
     return board
 
+# converting the board into one long string
+def convert(board):
+    ret = ''
+    dim = len(board)
+    for i in range(dim):
+        for j in range(dim):
+            ret += board[i][j]
+    return ret
+
 # solve the puzzle with given parameters - choices is [trials_count, expansions_count]
 def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts):
     # print len(shit_to_solve)
@@ -563,6 +572,7 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
     if is_legit(board, choices, diag):
         if is_deadend(board):
             # then it is a solution
+            # solutions_list.append(convert(board))
             solutions_list.append(board)
 
             # if short_circuit:
@@ -571,6 +581,7 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
         else:
             if has_no_null(board):
                 minc = min_coord(board)
+                # print minc
                 if minc == None:
                     return
 
@@ -585,6 +596,9 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
                 mass_optimize(board, constraint, choices, diag)
                 mass_optimize(new_board, constraint, choices, diag)
 
+                # printOut(board, constraint)
+                # printOut(new_board, constraint)
+                
                 shit_to_solve.append(board)
                 shit_to_solve.append(new_board)
 
@@ -596,6 +610,8 @@ def solvable_without_trials(constraint, choices, diag):
 
 # comprehensive solving
 def solve(constraint, choices, diag, short_circuit = False):
+    if short_circuit:
+        print "Warning! Short circuiting is set to ON."
     shit_to_solve = [init_board(constraint, choices, diag)]
     # printOut(shit_to_solve[0])
     # counts are trials and expansions, respectively
@@ -607,6 +623,8 @@ def solve(constraint, choices, diag, short_circuit = False):
 
 # would stop abruptly if a second solution is found
 def solve_from_partial(board, constraint, choices, diag, short_circuit = False):
+    if short_circuit:
+        print "Warning! Short circuiting is set to ON."
     shit_to_solve = [board]
     # counts are trials and expansions, respectively
     counts = [0,0]
@@ -616,7 +634,7 @@ def solve_from_partial(board, constraint, choices, diag, short_circuit = False):
         solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
     return [solutions_list, counts]
 
-# check if having unique solutions ?/ EXCEPTION for board being at bottom of param list
+# check if having unique solutions
 def has_unique_solution(constraint, choices, diag):
     return 1 == len(solve(constraint, choices, diag, True)[0])
 
@@ -936,115 +954,7 @@ def solver_gui():
     print "total number of solutions:", len(solutions_list)
     print "total number of trials:", counts[0]
     print "total number of expansions:", counts[1]
-
-# from this point onwards:
-# the equivalent of the solver, but in 1-D
-def sidequest(new_constraint, choices):
-    optimize_array(new_constraint, choices)
-    shit_to_solve = [new_constraint]
-    solutions_list = []
-    while len(shit_to_solve) != 0:
-        solve_array(shit_to_solve, choices, solutions_list)
-    return solutions_list
-
-def solve_array(shit_to_solve, choices, solutions_list):
-    # print len(shit_to_solve)
-    data = shit_to_solve.pop()
-    # print data
-    if not is_legit_array(data, choices):
-        return
-    if is_deadend_array(data):
-        solutions_list.append(data)
-        return
-    clone = deepcopy(data)
-    mindex = min_index(data)
-    if mindex == None:
-        return
-    data[mindex] = data[mindex][0]
-    clone[mindex] = clone[mindex][1:]
-    optimize_array(data, choices)
-    optimize_array(clone, choices)
-    shit_to_solve.append(clone)
-    shit_to_solve.append(data)
-
-def is_legit_array(board, choices):
-    dim = len(board)
-    maxX = dim-len(choices)+1
-    temp = ''
-    count = 0
-    for j in range(dim):
-        if board[j] == 'X':
-            count += 1
-        temp += board[j]
-    if count > maxX:
-        return False
-    for j in choices:
-        if j not in temp:
-            return False
-    if temp.count('X') < maxX:
-        return False
-    return True
-
-def optimize_array(board, choices):
-    dim = len(board)
-    maxX = dim - len(choices) + 1
-    changed = True
-    while changed:
-        changed = False
-        for c in choices:
-            if c != 'X':
-                count = 0
-                lastAppeared = -1
-                for i in range(dim):
-                    if c in board[i]:
-                        if c == board[i]:
-                            count = -1
-                            break
-                        count += 1
-                        lastAppeared = i
-                if count == 1 or count == -1:
-                    changed = True
-                    if count == 1:
-                        board[lastAppeared] = c
-                    for i in range(dim):
-                        if board[i] != c:
-                            board[i] = board[i].replace(c,'')
-                    return
-            else:
-                xcount = 0
-                xcount_pos = []
-                for i in range(dim):
-                    if board[i] == c:
-                        xcount += 1
-                    if c in board[i]:
-                        xcount_pos.append(i)
-                if xcount == maxX:
-                    for i in range(dim):
-                        if board[i] != c:
-                            board[i] = board[i].replace(c,'')
-                elif len(xcount_pos) == maxX:
-                    for i in xcount_pos:
-                        board[i] = 'X'
-
-def is_deadend_array(new_constraint):
-    for i in range(len(new_constraint)):
-        if len(new_constraint[i]) != 1:
-            return False
-    return True
-
-def min_index(new_constraint):
-    dim = len(new_constraint)
-    min_value = 10
-    index = None
-    for i in range(dim):
-        length = len(new_constraint[i])
-        if length == 2:
-            return i
-        else:
-            if length < min_value and length > 2:
-                min_value = length
-                index = i
-    return index
+    
 
 if __name__ == '__main__':
     solver_gui()
