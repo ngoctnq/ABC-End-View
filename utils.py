@@ -3,6 +3,8 @@ from copy import deepcopy
 # from timeit import default_timer          # for testing/timing purposes
 import random
 
+alert_shortcircuit = False
+
 # generate an empty constraint
 def empty_constraint(dim):
     constraint = [[],[]]
@@ -547,7 +549,7 @@ def init_board(constraint, choices, diag):
             if constraint[1][i][1] != '' and constraint[1][i][1] not in gotX:
                 board[dim-1][i] = constraint[1][i][1]
     # printOut(board, constraint)
-    
+
     # check only case
     cancel_all(board, constraint, choices, diag)
     mass_optimize(board, constraint, choices, diag)
@@ -598,7 +600,7 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
 
                 # printOut(board, constraint)
                 # printOut(new_board, constraint)
-                
+
                 shit_to_solve.append(board)
                 shit_to_solve.append(new_board)
 
@@ -610,8 +612,8 @@ def solvable_without_trials(constraint, choices, diag):
 
 # comprehensive solving
 def solve(constraint, choices, diag, short_circuit = False):
-    if short_circuit:
-        print "Warning! Short circuiting is set to ON."
+    if short_circuit and alert_shortcircuit:
+       print "Warning! Short circuiting is set to ON."
     shit_to_solve = [init_board(constraint, choices, diag)]
     # printOut(shit_to_solve[0])
     # counts are trials and expansions, respectively
@@ -954,7 +956,7 @@ def solver_gui():
     print "total number of solutions:", len(solutions_list)
     print "total number of trials:", counts[0]
     print "total number of expansions:", counts[1]
-    
+
 
 if __name__ == '__main__':
     solver_gui()
