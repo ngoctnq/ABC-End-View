@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from utils import *
 from timeit import default_timer
 
@@ -31,16 +31,9 @@ from timeit import default_timer
 constraint = [[['B', 'C'], ['G', 'A'], ['A', 'E'], ['F', 'D'], ['C', 'B'], ['E', 'C'], ['D', 'F'], ['D', 'G']], [['', 'D'], ['G', 'F'], ['F', 'E'], ['D', 'B'], ['', ''], ['', 'C'], ['F', 'A'], ['C', 'G']]]
 choices = 'ABCDEFG'
 
+choices += 'X'
 dim = len(constraint[0])
 diag = False
-
-is_input = False
-# GUI to input problem
-if is_input == True:
-    solver()
-    
-# start initializing
-choices += 'X'
 
 def main():
     printOut(init_board(constraint, choices, diag))
@@ -69,7 +62,12 @@ def check_if_sln_exists(dim = 8, choices = 'ABCDEFX'):
     solutions_list = solve(constraint, choices, diag, True)[0]
     printOut(solutions_list[0])
 
-# solving it
-# main()
-# test(check_if_sln_exists)
-test(main)
+is_input = False
+# GUI to input problem
+if is_input is True:
+    solver()
+else:
+    # solving it
+    # main()
+    # test(check_if_sln_exists)
+    test(main)

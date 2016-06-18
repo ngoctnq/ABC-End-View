@@ -1,9 +1,98 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from copy import deepcopy
-from timeit import default_timer
+# from timeit import default_timer          # for testing/timing purposes
 import random
-import urllib2
-from bs4 import BeautifulSoup
+
+alert_shortcircuit = False
+reduce_border_first = False
+
+# check if all bound are satisfied - assume it is legit already
+# return the first condition-breaking square, or none otherwise
+def first_unconstrained_bound(board, constraint, choices, diag = False):
+    dim = len(board)
+    # check row-beginning
+    for i in range(dim):
+        if constraint[0][i][0] != '':
+            for j in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[i][j]) > 2:
+                    raise ValueError('Square on border has > 2 choices?! at '+str([i,j]))
+                elif len(board[i][j]) == 2:
+                    return [i,j]
+                else:
+                    if board[i][j] == 'X':
+                        continue
+                    if board[i][j] == constraint[0][i][0]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([i,j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # check row-ending
+    for i in range(dim):
+        if constraint[0][i][1] != '':
+            for j in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[i][dim-1-j]) > 2:
+                    raise ValueError('Square on border has > 2 choices?! at '+str([i,dim-1-j]))
+                elif len(board[i][dim-1-j]) == 2:
+                    return [i,dim-1-j]
+                else:
+                    if board[i][dim-1-j] == 'X':
+                        continue
+                    if board[i][dim-1-j] == constraint[0][i][1]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([i,dim-1-j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # check column-beginning
+    for j in range(dim):
+        if constraint[1][j][0] != '':
+            for i in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[i][j]) > 2:
+                    # mass_optimize(board, constraint, choices, diag)
+                    # cancel_all(board, constraint, choices, diag)
+                    printOut(board,constraint)
+                    raise ValueError('Square on border has > 2 choices?! at '+str([i,j]))
+                    # return first_unconstrained_bound(board, constraint, choices, diag)
+                elif len(board[i][j]) == 2:
+                    return [i,j]
+                else:
+                    if board[i][j] == 'X':
+                        continue
+                    if board[i][j] == constraint[1][j][0]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([i,j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # check column-ending
+    for j in range(dim):
+        if constraint[1][j][1] != '':
+            for i in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[dim-1-i][j]) > 2:
+                    raise ValueError('Square on border has > 2 choices?! at '+str([dim-1-i,j]))
+                elif len(board[dim-1-i][j]) == 2:
+                    return [dim-1-i,j]
+                else:
+                    if board[dim-1-i][j] == 'X':
+                        continue
+                    if board[dim-1-i][j] == constraint[1][j][1]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([dim-1-i,j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # if all conditions passed
+    return None
+
+# short version of unconstrained bound
+def is_bound_satisfied(board, constraint, choices):
+    # enter a line so it'd collapse
+    return first_unconstrained_bound(board, constraint, choices) is None
 
 # generate an empty constraint
 def empty_constraint(dim):
@@ -82,7 +171,7 @@ def is_legit(board, choices, diag):
             return False
         for j in choices:
             if j not in temp:
-                return False   
+                return False
 
     # check diagonals
     if diag:
@@ -108,7 +197,7 @@ def is_legit(board, choices, diag):
             return False
         for j in choices:
             if j not in temp:
-                return False   
+                return False
 
     return True
 
@@ -158,7 +247,7 @@ def cancel_all(board, constraint, choices, diag):
                 while True:
                     if pos == dim:
                         break
-                    if board[i][pos] == constraint[1][i][0]:
+                    if board[pos][i] == constraint[1][i][0]:
                         break
                     if board[pos][i] == 'X':
                         pos += 1
@@ -293,7 +382,7 @@ def cancel_all(board, constraint, choices, diag):
                 # check diagonals
                 if diag:
                     xcount = 0
-                    xcout_pos = []
+                    xcount_pos = []
                     for j in range(dim):
                         if board[j][j] == c:
                             xcount += 1
@@ -423,7 +512,7 @@ def printOut(board, constraint = None):
         for j in range(dim):
             if maxChar < len(board[i][j]):
                 maxChar = len(board[i][j])
-    
+
     print '   ',
     for i in range(dim):
         print constraint[1][i][0].center(maxChar),
@@ -451,13 +540,16 @@ def printOut(board, constraint = None):
 # call optimize on all filled boxes
 def mass_optimize(board, constraint, choices, diag):
     dim = len(board)
-    if not is_legit(board, choices, diag):
-        reset_board(board)
-        return
-    for i in range(dim):
-        for j in range(dim):
-            if len(board[i][j]) == 1:
-                optimize(board,constraint,choices,diag,[i,j])
+    # do it twice - hacky af but it kinda works?...
+    # too lazy to mark where things changed anyway
+    for i in range(2):
+        if not is_legit(board, choices, diag):
+            reset_board(board)
+            return
+        for i in range(dim):
+            for j in range(dim):
+                if len(board[i][j]) == 1:
+                    optimize(board,constraint,choices,diag,[i,j])
 
 # make the initial board to be solved based on constraints and choices
 def init_board(constraint, choices, diag):
@@ -478,10 +570,88 @@ def init_board(constraint, choices, diag):
         for j in range(0, len(choices)-2):
             board[i][j] = board[i][j].replace(constraint[0][i][1],'')
             board[j][i] = board[j][i].replace(constraint[1][i][1],'')
+
+    # clear maxX
+    maxX = dim - len(choices) + 1
+    # left
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[0][i][0] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[0][i][0] != '' and constraint[0][i][0] not in gotX:
+                board[i][0] = constraint[0][i][0]
+    # right
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[0][i][1] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[0][i][1] != '' and constraint[0][i][1] not in gotX:
+                board[i][dim-1] = constraint[0][i][1]
+    # top
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[1][i][0] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[1][i][0] != '' and constraint[1][i][0] not in gotX:
+                board[0][i] = constraint[1][i][0]
+    # bottom
+    gotX = []
+    no_of_x = 0
+    for c in choices:
+        if c is not 'X':
+            count = 0
+            for i in range(dim):
+                if constraint[1][i][1] == c:
+                    count += 1
+            if count > 1:
+                no_of_x += (count - 1)
+                gotX.append(c)
+    if no_of_x == maxX:
+        for i in range(dim):
+            if constraint[1][i][1] != '' and constraint[1][i][1] not in gotX:
+                board[dim-1][i] = constraint[1][i][1]
+    # printOut(board, constraint)
+
     # check only case
     cancel_all(board, constraint, choices, diag)
     mass_optimize(board, constraint, choices, diag)
     return board
+
+# converting the board into one long string
+def convert(board):
+    ret = ''
+    dim = len(board)
+    for i in range(dim):
+        for j in range(dim):
+            ret += board[i][j]
+    return ret
 
 # solve the puzzle with given parameters - choices is [trials_count, expansions_count]
 def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts):
@@ -493,15 +663,22 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
     if is_legit(board, choices, diag):
         if is_deadend(board):
             # then it is a solution
+            # solutions_list.append(convert(board))
             solutions_list.append(board)
-        
-            # if short_circuit:    
+
+            # if short_circuit:
             #     shit_to_solve[:] = []
             #     return
         else:
             if has_no_null(board):
-                minc = min_coord(board)
-                if minc == None:
+                if reduce_border_first == True:
+                    minc = first_unconstrained_bound(board, constraint, choices, diag)
+                else:
+                    minc = None
+                if minc is None:
+                    minc = min_coord(board)
+                # print minc
+                if minc is None:
                     return
 
                 counts[1] += 1
@@ -509,12 +686,15 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
                 new_board = deepcopy(board)
                 new_board[minc[0]][minc[1]] = new_board[minc[0]][minc[1]][0]
                 board[minc[0]][minc[1]] = board[minc[0]][minc[1]][1:]
-                
+
                 cancel_all(board, constraint, choices, diag)
                 cancel_all(new_board, constraint, choices, diag)
                 mass_optimize(board, constraint, choices, diag)
                 mass_optimize(new_board, constraint, choices, diag)
-                
+
+                # printOut(board, constraint)
+                # printOut(new_board, constraint)
+
                 shit_to_solve.append(board)
                 shit_to_solve.append(new_board)
 
@@ -526,6 +706,8 @@ def solvable_without_trials(constraint, choices, diag):
 
 # comprehensive solving
 def solve(constraint, choices, diag, short_circuit = False):
+    if short_circuit and alert_shortcircuit:
+       print "Warning! Short circuiting is set to ON."
     shit_to_solve = [init_board(constraint, choices, diag)]
     # printOut(shit_to_solve[0])
     # counts are trials and expansions, respectively
@@ -537,6 +719,8 @@ def solve(constraint, choices, diag, short_circuit = False):
 
 # would stop abruptly if a second solution is found
 def solve_from_partial(board, constraint, choices, diag, short_circuit = False):
+    if short_circuit:
+        print "Warning! Short circuiting is set to ON."
     shit_to_solve = [board]
     # counts are trials and expansions, respectively
     counts = [0,0]
@@ -546,7 +730,7 @@ def solve_from_partial(board, constraint, choices, diag, short_circuit = False):
         solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
     return [solutions_list, counts]
 
-# check if having unique solutions ?/ EXCEPTION for board being at bottom of param list
+# check if having unique solutions
 def has_unique_solution(constraint, choices, diag):
     return 1 == len(solve(constraint, choices, diag, True)[0])
 
@@ -585,11 +769,12 @@ def available_boxes(board):
 # NOT WORKING PROPERLY
 # generate a board with given dimension and choices, if not working, retry.
 def generate(dim, choices_no_x, diag, trials_count = 1):
-    tic = default_timer()
+    # tic = default_timer()
     choices = choices_no_x.upper() + 'X'
     constraint = empty_constraint(dim)
     board = init_board(constraint, choices, diag)
     # temp_board = None
+    clue_count = 0
 
     if diag:
         # generate main diagonal first
@@ -605,6 +790,7 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
         deadend = is_deadend(board)
         legit = is_legit(board, choices, diag)
         if legit and not deadend:
+            clue_count += 1
             # printOut(board)
             # temp_board = deepcopy(board)
             avail = available_boxes(board)
@@ -617,12 +803,13 @@ def generate(dim, choices_no_x, diag, trials_count = 1):
             optimize(board, constraint, choices, diag, [x,y])
             mass_optimize(board, constraint, choices, diag)
         elif legit:
-            toc = default_timer()
+            # toc = default_timer()
+            print clue_count
             # print "taken",toc-tic,"seconds"
             return board
         else:
-            print "deadend, retrying..."
-            toc = default_timer()
+            print clue_count, "deadend, retrying..."
+            # toc = default_timer()
             # print "taken",toc-tic,"seconds"
             # printOut(temp_board)
             # printOut(board)
@@ -670,7 +857,7 @@ def available_constraints(constraint):
             for k in range(2):
                 if constraint[i][j][k] != '':
                     acc.append([i,j,k])
-    return acc 
+    return acc
 
 # check if 2 boards are equal
 def equal(board1, board2):
@@ -679,7 +866,7 @@ def equal(board1, board2):
         for j in range(dim):
             if board1[i][j]!=board2[i][j]:
                 return False
-    return True 
+    return True
 
 # check if all are capital and sequential from A
 def not_cap_chars(word):
@@ -691,7 +878,7 @@ def not_cap_chars(word):
 # solver function - GUI asking for input
 def solver_gui():
     print 'ABC ENDVIEW SOLVER'
-    print 
+    print
 
     not_entered = True
     while not_entered:
@@ -714,8 +901,8 @@ def solver_gui():
         choices = raw_input("Characters to fill in, with no delimiters: ").upper()
         if not_cap_chars(choices):
             print "String error!", "Only sequencial capital letters are allowed."
-        elif len(choices) >= dim:
-            print "String error!", "Number of choices must be less than "+str(dim)+"."
+        elif len(choices) > dim:
+            print "String error!", "Number of choices must be less than or equal to "+str(dim)+"."
         else:
             not_entered = False
     #______________
@@ -798,7 +985,7 @@ def solver_gui():
                     break
             if legit:
                 not_entered = False
-    #______________     
+    #______________
     not_entered = True
     while not_entered:
         not_entered = False
@@ -810,10 +997,50 @@ def solver_gui():
         else:
             print 'Not a valid answer!'
             not_entered = True
-    #______________
     # start initializing
-    choices += 'X'
-    result = solve(constraint, choices, diag)
+    if dim > len(choices):
+        choices += 'X'
+    #______________
+    not_entered = True
+    while not_entered:
+        not_entered = False
+        result = raw_input("Are there prefilled boxes? ").upper()
+        if result in ['YES','Y','1']:
+            partial = True
+        elif result in ['NO','N','0']:
+            partial = False
+        else:
+            print 'Not a valid answer!'
+            not_entered = True
+    #______________
+    if not partial:
+        result = solve(constraint, choices, diag)
+    else:
+        board = init_board(constraint, choices, diag)
+        print "Input coordinates and value, blankspace-separated; blank to end."
+        while True:
+            result = raw_input().upper()
+            if result == '':
+                break
+            else:
+                try:
+                    clues = result.split()
+                    if len(clues) != 3:
+                        raise ValueError
+                    i = int(clues[0])-1
+                    j = int(clues[1])-1
+                    if len(clues[2])!= 1 or clues[2] == 'X' or clues[2] not in choices:
+                        raise ValueError
+                    if i<0 or j<0 or i>=dim or j>=dim:
+                        raise ValueError
+                    board[i][j] = clues[2]
+                except:
+                    print 'Not a valid input! Ignored last input.'
+        print 'All input taken! Solving...'
+        cancel_all(board, constraint, choices, diag)
+        mass_optimize(board, constraint, choices, diag)
+        result = solve_from_partial(board, constraint, choices, diag)
+
     solutions_list = result[0]
     counts = result[1]
     for i in range(len(solutions_list)):
@@ -824,114 +1051,6 @@ def solver_gui():
     print "total number of trials:", counts[0]
     print "total number of expansions:", counts[1]
 
-# from this point onwards:
-# the equivalent of the solver, but in 1-D
-def sidequest(new_constraint, choices):
-    optimize_array(new_constraint, choices)
-    shit_to_solve = [new_constraint]
-    solutions_list = []
-    while len(shit_to_solve) != 0:
-        solve_array(shit_to_solve, choices, solutions_list)
-    return solutions_list
-
-def solve_array(shit_to_solve, choices, solutions_list):
-    # print len(shit_to_solve)
-    data = shit_to_solve.pop()
-    # print data
-    if not is_legit_array(data, choices):
-        return
-    if is_deadend_array(data):
-        solutions_list.append(data)
-        return
-    clone = deepcopy(data)
-    mindex = min_index(data)
-    if mindex == None:
-        return
-    data[mindex] = data[mindex][0]
-    clone[mindex] = clone[mindex][1:]
-    optimize_array(data, choices)
-    optimize_array(clone, choices)
-    shit_to_solve.append(clone)
-    shit_to_solve.append(data)
-
-def is_legit_array(board, choices):
-    dim = len(board)
-    maxX = dim-len(choices)+1
-    temp = ''
-    count = 0
-    for j in range(dim):
-        if board[j] == 'X':
-            count += 1
-        temp += board[j]
-    if count > maxX:
-        return False
-    for j in choices:
-        if j not in temp:
-            return False
-    if temp.count('X') < maxX:
-        return False
-    return True
-
-def optimize_array(board, choices):
-    dim = len(board)
-    maxX = dim - len(choices) + 1
-    changed = True
-    while changed:
-        changed = False
-        for c in choices:
-            if c != 'X':
-                count = 0
-                lastAppeared = -1
-                for i in range(dim):
-                    if c in board[i]:
-                        if c == board[i]:
-                            count = -1
-                            break
-                        count += 1
-                        lastAppeared = i
-                if count == 1 or count == -1:
-                    changed = True
-                    if count == 1:
-                        board[lastAppeared] = c
-                    for i in range(dim):
-                        if board[i] != c:
-                            board[i] = board[i].replace(c,'')
-                    return
-            else:
-                xcount = 0
-                xcount_pos = []
-                for i in range(dim):
-                    if board[i] == c:
-                        xcount += 1
-                    if c in board[i]:
-                        xcount_pos.append(i)
-                if xcount == maxX:
-                    for i in range(dim):
-                        if board[i] != c:
-                            board[i] = board[i].replace(c,'')
-                elif len(xcount_pos) == maxX:
-                    for i in xcount_pos:
-                        board[i] = 'X'
-
-def is_deadend_array(new_constraint):
-    for i in range(len(new_constraint)):
-        if len(new_constraint[i]) != 1:
-            return False
-    return True
-
-def min_index(new_constraint):
-    dim = len(new_constraint)
-    min_value = 10
-    index = None
-    for i in range(dim):
-        length = len(new_constraint[i])
-        if length == 2:
-            return i
-        else:
-            if length < min_value and length > 2:
-                min_value = length
-                index = i
-    return index
 
 if __name__ == '__main__':
     solver_gui()

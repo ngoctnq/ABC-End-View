@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from utils import *
 
-def test(dim = 5, length_of_choices = 3, bool_int = 0, criteria = has_unique_solution):
+def board_generator(dim = 5, length_of_choices = 3, bool_int = 0,
+                    criteria = has_unique_solution, test = False):
     # criteria = solvable_without_trials
     # criteria = has_unique_solution
 
@@ -9,9 +10,9 @@ def test(dim = 5, length_of_choices = 3, bool_int = 0, criteria = has_unique_sol
     # for i in range(dim):
     #     constraint[0].append(['',''])
     #     constraint[1].append(['',''])
-    
+
     generation_count = 0
-    if bool_int == 0: 
+    if bool_int == 0:
         diag = False
     else:
         diag = True
@@ -30,19 +31,21 @@ def test(dim = 5, length_of_choices = 3, bool_int = 0, criteria = has_unique_sol
     generation_count += 1
     constraint = generate_constraint(board)
     while not has_unique_solution(constraint, choices, diag):
-        print 'trying... - the',generation_count,'time'
+        print 'retrying... - the',generation_count,'time'
         board = generate(dim, choices_no_x, diag)
         # printOut(board)
         generation_count += 1
         constraint = generate_constraint(board)
-    reduce_constraints(constraint, choices, diag, criteria)
-    # printOut(init_board(constraint, choices, diag), constraint)
-    printOut(board, constraint)
-    print "--- after generating", generation_count, "trials"
+        # printOut(board, constraint)
+    if not test:
+        reduce_constraints(constraint, choices, diag, criteria)
+        # printOut(init_board(constraint, choices, diag), constraint)
+        printOut(board, constraint)
+        print "--- after generating", generation_count, "trials"
     return generation_count
 
-if __name__ == "__main__":
-    f = open('data','a')
+def collision_test(file_name = 'data', file_mode = 'r+'):
+    f = open(file_name, file_mode)
 
     data = []
     for i in range(10000):
@@ -81,3 +84,6 @@ if __name__ == "__main__":
     f.write('\n\n')
 
     f.close()
+
+if __name__ == "__main__":
+    print board_generator(4,2,0, test = False)
