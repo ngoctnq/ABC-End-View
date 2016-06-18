@@ -4,6 +4,95 @@ from copy import deepcopy
 import random
 
 alert_shortcircuit = False
+reduce_border_first = False
+
+# check if all bound are satisfied - assume it is legit already
+# return the first condition-breaking square, or none otherwise
+def first_unconstrained_bound(board, constraint, choices, diag = False):
+    dim = len(board)
+    # check row-beginning
+    for i in range(dim):
+        if constraint[0][i][0] != '':
+            for j in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[i][j]) > 2:
+                    raise ValueError('Square on border has > 2 choices?! at '+str([i,j]))
+                elif len(board[i][j]) == 2:
+                    return [i,j]
+                else:
+                    if board[i][j] == 'X':
+                        continue
+                    if board[i][j] == constraint[0][i][0]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([i,j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # check row-ending
+    for i in range(dim):
+        if constraint[0][i][1] != '':
+            for j in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[i][dim-1-j]) > 2:
+                    raise ValueError('Square on border has > 2 choices?! at '+str([i,dim-1-j]))
+                elif len(board[i][dim-1-j]) == 2:
+                    return [i,dim-1-j]
+                else:
+                    if board[i][dim-1-j] == 'X':
+                        continue
+                    if board[i][dim-1-j] == constraint[0][i][1]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([i,dim-1-j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # check column-beginning
+    for j in range(dim):
+        if constraint[1][j][0] != '':
+            for i in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[i][j]) > 2:
+                    # mass_optimize(board, constraint, choices, diag)
+                    # cancel_all(board, constraint, choices, diag)
+                    printOut(board,constraint)
+                    raise ValueError('Square on border has > 2 choices?! at '+str([i,j]))
+                    # return first_unconstrained_bound(board, constraint, choices, diag)
+                elif len(board[i][j]) == 2:
+                    return [i,j]
+                else:
+                    if board[i][j] == 'X':
+                        continue
+                    if board[i][j] == constraint[1][j][0]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([i,j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # check column-ending
+    for j in range(dim):
+        if constraint[1][j][1] != '':
+            for i in range(dim):
+                # shouldn't happen, but just in case
+                if len(board[dim-1-i][j]) > 2:
+                    raise ValueError('Square on border has > 2 choices?! at '+str([dim-1-i,j]))
+                elif len(board[dim-1-i][j]) == 2:
+                    return [dim-1-i,j]
+                else:
+                    if board[dim-1-i][j] == 'X':
+                        continue
+                    if board[dim-1-i][j] == constraint[1][j][1]:
+                        break
+                    else:
+                        printOut(board,constraint)
+                        raise ValueError('Invalid board?! at '+str([dim-1-i,j]))
+                raise ValueError('Reached end of board - invalid board.')
+    # if all conditions passed
+    return None
+
+# short version of unconstrained bound
+def is_bound_satisfied(board, constraint, choices):
+    # enter a line so it'd collapse
+    return first_unconstrained_bound(board, constraint, choices) is None
 
 # generate an empty constraint
 def empty_constraint(dim):
@@ -158,7 +247,7 @@ def cancel_all(board, constraint, choices, diag):
                 while True:
                     if pos == dim:
                         break
-                    if board[i][pos] == constraint[1][i][0]:
+                    if board[pos][i] == constraint[1][i][0]:
                         break
                     if board[pos][i] == 'X':
                         pos += 1
@@ -582,9 +671,14 @@ def solve_core(shit_to_solve, constraint, choices, diag, solutions_list, counts)
             #     return
         else:
             if has_no_null(board):
-                minc = min_coord(board)
+                if reduce_border_first == True:
+                    minc = first_unconstrained_bound(board, constraint, choices, diag)
+                else:
+                    minc = None
+                if minc is None:
+                    minc = min_coord(board)
                 # print minc
-                if minc == None:
+                if minc is None:
                     return
 
                 counts[1] += 1

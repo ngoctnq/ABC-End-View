@@ -224,6 +224,10 @@ def janko_mass_stat():
         if i == 480:
             continue
         print i
-        solution = solver_janko(i, True)
+        solver_janko(i, True)
     for i in stat:
-        print stat[i]
+        print i, stat[i]
+
+if __name__ == "__main__":
+    janko_mass_solve()
+    # solver_janko(61)
