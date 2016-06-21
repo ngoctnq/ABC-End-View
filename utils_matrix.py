@@ -198,16 +198,14 @@ def equation_list_check(board, equation_list):
 				coord = constraint_equation[0][1]
 				board[coord[0]][coord[1]] = constraint_equation[0][0]
 				changed = True
-				if logging:
-					print 'filling', coord[0], coord[1],
-					print int_to_char(constraint_equation[0][0])
+				log('filling ' + str(coord) + ' '
+                    + int_to_char(constraint_equation[0][0]))
 		# Latin constraint
 		else:
 			if len(constraint_equation[1]) == 0:
 				for coord in constraint_equation[0]:
 					board[coord[0]][coord[1]] = 1
-					if logging:
-						print 'filling', coord[0], coord[1], 'X'
+					log('filling ' + str(coord) + ' X')
 				changed = True
 	return changed
 
@@ -223,14 +221,13 @@ def equation_list_reduction(board, equation_list):
 		If constraint_list[0] is [],[-1],
 			then the board is impossible. This is to help trial and error.
 		'''
-	if logging:
-		print 'change detected, running equation_list_reduction'
+	log('change detected, running equation_list_reduction', 2)
 	for constraint_equation in equation_list:
 		status = equation_reduction(board, constraint_equation)
 		if status == 1:
 			del equation_list[equation_list.index(constraint_equation)]
 		elif status == -1:
-			print 'WARNING: rare case -bug?- impossible Latin constraint'
+			log('WARNING: rare case -bug?- impossible Latin constraint', 0)
 			equation_list[:] = [[[],[-1]]]
 			break
 
@@ -321,9 +318,9 @@ def equation_reduction(board, constraint_equation):
 # __________
 
 def generate_horizontal_border(dim):
-	''' Return one horizontal border.
-		Used in printOut.
-		'''
+    ''' Return one horizontal border.
+        Used in printOut.
+       '''
     hBorder = '  '
     for i in range(dim):
         hBorder += '+-'
@@ -346,9 +343,9 @@ def int_to_char(i):
 		raise ValueError(str(i) + ' is not a valid int for a label')
 
 def stringify(board, constraint = None):
-	''' Return a pretty printing the board.
-		Reliant on '\n', be careful.
-		'''
+    ''' Return a pretty printing the board.
+        Reliant on '\n', be careful.
+        '''
     dim = len(board)
     ret = ''
     horizontal_border = generate_horizontal_border(dim)
@@ -392,6 +389,11 @@ def stringify(board, constraint = None):
         ret += '   '
     return ret
 
+def log(msg, priority = 1):
+    ''' for logging purposes, can change stream or write to file. '''
+    if logging:
+        print msg
+
 # JANKO PARSER SECTION
 # __________
 
@@ -419,6 +421,10 @@ def janko_get_text(no = 0):
     html_doc = file.read()
     soup = BeautifulSoup(html_doc, 'html.parser')
     data = soup.data.get_text().split('\n')
+
+    # cache the received data
+
+    return data
 
 def janko_parser(data):
 	''' Janko parser.
