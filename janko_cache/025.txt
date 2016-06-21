@@ -1,0 +1,25 @@
+begin
+author Oleg Andrushko
+solver Rainer
+source http://www.puzzleprograms.narod.ru/
+info 5x5-17
+unit 30
+size 5
+depth 3
+clabels
+- - - b -
+c - - c -
+rlabels
+c - - - -
+- b a - -
+solution
+- c a b -
+- - c a b
+b - - c a
+a b - - c
+c a b - -
+moves
+Z2;bb,0;eb,2;fc,2;ed,3;ee,0;ef,0;ec,1;fd,1;fb,0;cb,3;
+db,1;dc,3;cc,0;bc,0;bf,3;bd,2;be,1;cd,0;dd,0;fe,3;ff,0;
+df,2;cf,1;ce,2;
+end

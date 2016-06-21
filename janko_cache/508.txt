@@ -1,0 +1,24 @@
+begin
+author Otto Janko
+solver Emma
+source http://www.janko.at/Raetsel/
+info 9000-98-469568-0-308
+unit 30
+size 5
+depth 4
+clabels
+- - - b -
+d - c - -
+rlabels
+- - - - -
+- c - a c
+solution
+- c a b d
+a d b c -
+c a d - b
+b - c d a
+d b - a c
+moves
+Z2;de,3;ff,3;cf,2;bf,4;ef,1;fe,1;be,2;ec,3;eb,2;fd,2;
+fb,4;dc,2;cc,4;bc,1;dd,4;db,1;cd,1;cb,3;bd,3;ee,4;
+end

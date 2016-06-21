@@ -1,0 +1,27 @@
+begin
+author Otto Janko
+solver Rainer
+source http://www.janko.at/Raetsel/
+info 9000-70-618394-0-846
+unit 30
+size 6
+depth 5
+clabels
+c - a - d -
+e b - - e -
+rlabels
+- - - c d -
+- c d b e -
+solution
+c - a b d e
+a d e - b c
+b e - a c d
+- c d e a b
+d a b c e -
+e b c d - a
+moves
+Z2;cg,2;bg,5;fg,0;ff,5;fb,4;gd,4;gf,0;ge,2;gc,3;gg,1;
+gb,5;bf,4;be,0;ce,3;bb,3;fd,3;fe,1;fc,2;bc,1;bd,2;cf,1;
+ed,1;db,1;cb,0;eb,2;cd,5;cc,4;dd,0;ec,0;dc,5;de,4;ee,5;
+df,2;ef,3;eg,4;dg,3;
+end

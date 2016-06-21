@@ -1,0 +1,29 @@
+begin
+author Oleg Andrushko
+solver Rainer
+source http://www.puzzleprograms.narod.ru/
+info 7x7-07
+unit 30
+size 7
+depth 3
+clabels
+- - b b - - c
+b - - a a - -
+rlabels
+- - c - a c a
+b b - c - - -
+solution
+a c b - - - -
+- a c b - - -
+c b - - - a -
+b - a c - - -
+- - - a b - c
+- - - - c b a
+- - - - a c b
+moves
+Z2;bh,0;bg,0;bf,0;be,2;hb,0;hc,0;hg,1;hd,0;cd,2;bd,3;
+ed,0;gd,1;fd,0;dd,0;eb,0;ec,2;gc,0;fc,0;db,2;fb,0;gb,0;
+bb,1;cb,3;bc,0;cc,1;dc,3;ce,0;cf,0;cg,0;ch,0;fh,1;dh,0;
+eh,0;hh,2;gh,3;eg,0;ef,1;ee,3;de,1;df,0;dg,0;fg,3;gg,2;
+ff,2;fe,0;ge,0;he,0;hf,3;
+end

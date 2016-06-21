@@ -1,0 +1,42 @@
+begin
+author Otto Janko
+solver Rainer
+source http://www.janko.at/Raetsel/
+info 1781-40-8090876-0-277
+unit 30
+size 7
+depth 3
+clabels
+c - a a - - a
+- b b - - b -
+rlabels
+a - - c - c -
+- - b b c - -
+solution
+- - - a b c -
+- - - b c - a
+- - - c - a b
+c - a - - b -
+b a c - - - -
+- c b - a - -
+a b - - - - c
+moves
+Z2;bb,0;bg,0;fb,2;gb,3;hb,0;hc,1;cb,-,,F;db,-,,F;eb,-,,F;
+gd,-,,F;fd,-,,F;ed,-,,F;dd,-,,F;cd,-,,F;bd,-,,F;ce,-,,F;
+de,-,,F;ee,-,,F;fe,-,,F;ge,-,,F;bf,-,,F;cf,-,,F;df,-,,F;
+ef,-,,F;ff,-,,F;gf,-,,F;fg,-,,F;gg,-,,F;bh,-,,F;fh,-,,F;
+ec,2,,G;eb,1,,F;db,0,,F;cb,0,,F;hd,-,,G;gd,-,,F;hd,2,,G;
+he,0;ge,-,,FG;ce,-,,FG;bf,-,,FG;cf,-,,FG;df,-,,FG;gf,-,,FG;
+dg,-,,G;gg,-,,FG;gh,-,,G;dh,-,,G;ch,-,,G;bh,-,,FG;bc,-,,H;
+cc,-,,H;fc,-,,H;fd,-,,FH;ed,-;ee,-;ef,-;ed,-,,H;dc,0;
+cd,-,,FH;bd,-,,FH;be,-,,H;ce,-,,FGH;de,-,,FH;ee,-,,H;
+df,-,,FGH;ef,-,,H;ff,-,,FH;hf,-,,H;cg,-,,H;dg,-,,GH;
+eg,-,,H;eh,-,,H;fh,-,,FH;hh,-,,H;hg,0;gc,0;ce,-,,FH;
+ge,2,,FG;gf,-,,F;gg,-,,F;gh,0;gg,-;gf,-;gg,0;gf,0;gd,1,,F;
+fd,-,,H;dd,-;cd,-,,H;bd,-,,H;dd,0;de,-,,F;df,-,,FH;
+eg,0;cg,3,,H;dg,2,,GH;fg,1,,F;ce,-,,F;cd,-;cc,-;cd,0;
+cc,0;dh,0,,G;fh,-,,H;ff,-,,H;fe,0;de,1,,F;df,3,,FH;
+ef,0,,H;ff,0,,H;hf,0,,H;ce,0,,F;ch,2,,G;cf,1,,FG;bf,2,,FG;
+bh,1,,FG;be,3,,H;bd,0,,H;ee,0,,H;hh,3,,H;fh,0,,H;eh,0,,H;
+ed,3,,H;fd,0,,H;fc,3,,H;
+end

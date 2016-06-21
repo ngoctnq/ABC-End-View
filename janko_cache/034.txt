@@ -1,0 +1,27 @@
+begin
+author Oleg Andrushko
+solver Rainer
+source http://www.puzzleprograms.narod.ru/
+info 6x6-06
+unit 30
+size 6
+depth 4
+clabels
+- - - b - c
+- c d - - -
+rlabels
+b - d a b -
+- - b - c d
+solution
+- b a - d c
+c d - b - a
+d - c - a b
+a - b d c -
+b a d c - -
+- c - a b d
+moves
+Z2;gc,1;gb,3;eb,0;gf,0;dg,0;fg,2;gg,4;bf,2;bb,0;cb,2;
+fb,4;db,1;fd,1;gd,2;ge,0;ec,2;de,2;df,4;ee,4;cg,3;bc,3;
+cc,4;dd,3;dc,0;fc,0;ed,0;cd,0;bd,4;ef,3;eg,1;bg,0;be,1;
+ce,0;fe,3;ff,0;cf,1;
+end

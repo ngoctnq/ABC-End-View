@@ -1,0 +1,40 @@
+begin
+author Mikhail Khotiner
+solver Rainer
+source http://tvpark.kiev.ua/
+info 200402
+unit 30
+size 8
+depth 6
+clabels
+d - c d e - - -
+- a - e - a - -
+rlabels
+- - - c b c - d
+c d - f f f a -
+problem
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - - - - -
+- - - - b - - -
+- - - - - - - -
+solution
+d f - - e b a c
+f e c - a - b d
+a b f d c - - e
+- c b a - d e f
+b d a c - e f -
+c a e b d f - -
+e - - f b c d a
+- - d e f a c b
+moves
+Z2;ib,3;ic,4;ih,1;db,0;fb,5;hb,1;bi,0;ci,0;di,4;gi,1;
+ei,5;bf,2;bb,4;eb,0;ec,0;ed,4;ch,0;cg,1;bg,3;be,0;ce,3;
+cf,4;eh,6;bh,5;eg,2;ee,1;ef,3;ii,2;id,5;fi,6;hi,3;dh,0;
+hh,4;gh,3;gb,2;cb,6;cd,2;cc,5;gc,0;dc,3;fc,1;hc,2;bc,6;
+bd,1;gd,0;hd,0;fd,3;dd,6;dg,5;de,2;df,1;ff,0;gg,6;ig,0;
+hg,0;fg,4;fe,0;ie,6;if,0;hf,6;gf,5;he,5;ge,4;
+end

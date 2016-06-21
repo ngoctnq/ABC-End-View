@@ -1,0 +1,21 @@
+begin
+author Oleg Andrushko
+source http://www.puzzleprograms.narod.ru/
+info 6x6-15
+unit 30
+size 6
+depth 3
+clabels
+- a b - - -
+- - - b a -
+rlabels
+c c - a - -
+- - a - b b
+solution
+c a b - - -
+- - c a b -
+b - - - c a
+a b - - - c
+- - - c a b
+- c a b - -
+end

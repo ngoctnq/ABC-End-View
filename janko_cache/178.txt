@@ -1,0 +1,30 @@
+begin
+author Otto Janko
+solver Rainer
+source http://www.janko.at/Raetsel/
+info 1547-26-916480422-0-407
+unit 30
+size 7
+depth 6
+options diagonals
+clabels
+d b e - c b -
+f - a d - - c
+rlabels
+d - a - - - f
+- b - e b d -
+solution
+d b e f c - a
+c e f a d b -
+a - b c e d f
+b d c - f a e
+- f d e a c b
+e c a b - f d
+f a - d b e c
+moves
+Z2;fb,3;db,5;bb,4;he,5;hg,4;hh,3;hd,6;hb,1;eb,6;cb,2;
+gb,0;gc,2;hc,0;hf,2;dd,2;fh,2;eg,2;be,2;eh,4;bh,6;ee,0;
+df,4;fc,4;cg,3;fd,5;fg,0;bg,5;cc,5;gh,5;ef,5;ed,3;ec,1;
+bc,3;dc,6;dg,1;gg,6;dh,0;ch,1;bd,1;bf,0;de,3;cf,6;ff,1;
+gf,3;gd,4;ge,1;fe,6;ce,4;
+end
