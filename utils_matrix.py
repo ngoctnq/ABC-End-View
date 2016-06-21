@@ -410,7 +410,7 @@ def log(msg, priority = 1):
 # __________
 
 # Note: commenting out if beautifulsoup4 is not present.
-def janko_gui(no = 0):
+def janko_get_text(no = 0):
     ''' Get the problem from janko site.
         Will cache into a folder.
         '''
