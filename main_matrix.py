@@ -1,8 +1,11 @@
 #!/usr/bin/env python2
 from utils_matrix import *
 
-# Formatting of the board:
-# - board[i][j] denotes the i-th row, j-th column, zero-based.
-# - constraint[i] denotes the constraints on the border,
-# 	0, 1, 2, 3 are top, bottom, left, right, respectively.
+l = [1,2,3,4]
 
+for i in l:
+	print i
+	if i == 2:
+		del l[l.index(i)]
+	print l[l.index(i)]
+	print l
