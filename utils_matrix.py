@@ -17,7 +17,8 @@ logging = True
 
 # List of primes, cached for easy access - except for the first entry.
 # Note: can be replaced by a lazy-evaluation Lisp-style list.
-primes = [1,2,3,5,7,11,13,17,19,23,29]
+# ref:    -  A  B  C  D  E   F   G   H   I   J
+primes = [1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
 # INITIALIZATION SECTION
 # __________
@@ -113,7 +114,7 @@ def generate_equation_list(board, constraint, choices, diag):
             # members are list of coordinates
             new_equation[0].append([i,i])
         for i in range(choices):
-            new_equation[1].append(primes[j+1])
+            new_equation[1].append(primes[i+1])
         equation_list.append(new_equation)
 
         # anti-diagonal
@@ -122,7 +123,7 @@ def generate_equation_list(board, constraint, choices, diag):
             # members are list of coordinates
             new_equation[0].append([i,dim-1-i])
         for i in range(choices):
-            new_equation[1].append(primes[j+1])
+            new_equation[1].append(primes[i+1])
         equation_list.append(new_equation)
 
     # top constraint
@@ -354,6 +355,13 @@ def int_to_char(i):
     else:
         raise ValueError(str(i) + ' is not a valid int for a label')
 
+def char_to_int(c):
+    ''' Return char to int.. '''
+    if c == '-':
+        return 1
+    else:
+        return primes[ord(c) - ord('A') + 1]
+
 def stringify(board, constraint = None):
     ''' Return a pretty printing the board.
         Reliant on '\n', be careful.
@@ -498,9 +506,10 @@ def janko_parser(data):
             for i in range(dim):
                 if topConstraint[i] != '-':
                     try:
-                        constraint[0][i] = chr(int(topConstraint[i])+ord('A')-1)
+                        constraint[0][i] = \
+                            char_to_int(chr(int(topConstraint[i])+ord('A')-1))
                     except:
-                        constraint[0][i] = topConstraint[i]
+                        constraint[0][i] = char_to_int(topConstraint[i])
             del data[0]
             del topConstraint
             #__________
@@ -508,9 +517,10 @@ def janko_parser(data):
             for i in range(dim):
                 if bottomConstraint[i] != '-':
                     try:
-                        constraint[1][i] = chr(int(bottomConstraint[i])+ord('A')-1)
+                        constraint[1][i] = \
+                            char_to_int(chr(int(bottomConstraint[i])+ord('A')-1))
                     except:
-                        constraint[1][i] = bottomConstraint[i]
+                        constraint[1][i] = char_to_int(bottomConstraint[i])
             del data[0]
             del bottomConstraint
             #__________
@@ -522,9 +532,10 @@ def janko_parser(data):
             for i in range(dim):
                 if leftConstraint[i] != '-':
                     try:
-                        constraint[2][i] = chr(int(leftConstraint[i])+ord('A')-1)
+                        constraint[2][i] = \
+                            char_to_int(chr(int(leftConstraint[i])+ord('A')-1))
                     except:
-                        constraint[2][i] = leftConstraint[i]
+                        constraint[2][i] = char_to_int(leftConstraint[i])
             del data[0]
             del leftConstraint
             #__________
@@ -532,9 +543,10 @@ def janko_parser(data):
             for i in range(dim):
                 if rightConstraint[i] != '-':
                     try:
-                        constraint[3][i] = chr(int(rightConstraint[i])+ord('A')-1)
+                        constraint[3][i] = \
+                            char_to_int(chr(int(rightConstraint[i])+ord('A')-1))
                     except:
-                        constraint[3][i] = rightConstraint[i]
+                        constraint[3][i] = char_to_int(rightConstraint[i])
             del data[0]
             del rightConstraint
         # problem lmao
@@ -547,14 +559,17 @@ def janko_parser(data):
                 del data[0]
                 for j in range(dim):
                     if clues[j] != '-':
-                        board[i][j] = clues[j]
+                        board[i][j] = char_to_int(clues[j])
 
     return board, constraint, choices, diag
 
 # WORK IN PROGRESS // TESTING SECTION
-def shabby_printing(board, constraint, equation_list):
-    print '\n'
+def shabby_printing(board, constraint, diag, equation_list):
+    print
     print '_'*50
+    print
+    print 'Diagonal?',
+    print diag
     print 
     print stringify(board, constraint)
     print
@@ -563,23 +578,29 @@ def shabby_printing(board, constraint, equation_list):
     print
 
 if __name__ == '__main__':
-    dim = 4
-    board = generate_empty_board(dim)
-    constraint = [
-        [0,0,2,0],
-        [0,0,0,3],
-        [0,3,0,0],
-        [0,0,0,2]]
+    print '_'*50
+    print '\n'
 
-    equation_list[8][0][2:] = []
-    equation_list[10][0][1:3] = []
+    # dim = 4
+    # board = generate_empty_board(dim)
+    # constraint = [
+    #     [0,0,2,0],
+    #     [0,0,0,3],
+    #     [0,3,0,0],
+    #     [0,0,0,2]]
+    # choices = 2
+    # diag = False
+    # board[0][2] = 2
+    # board[1][2] = 3
 
-    equation_list = equation_list_init(board, constraint, 2, False)
-    shabby_printing(board, constraint, equation_list)
+    board, constraint, choices, diag = janko_parser(janko_get_text(100))
+
+    equation_list = equation_list_init(board, constraint, choices, diag)
+    shabby_printing(board, constraint, diag, equation_list)
 
     while True:
         if equation_list_check(board, equation_list) and \
                 equation_list_reduction(board, equation_list) is None:
-            shabby_printing(board, constraint, equation_list)
+            shabby_printing(board, constraint, diag, equation_list)
         else:
             break
