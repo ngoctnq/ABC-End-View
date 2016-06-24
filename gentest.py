@@ -86,4 +86,4 @@ def collision_test(file_name = 'data', file_mode = 'r+'):
     f.close()
 
 if __name__ == "__main__":
-    print board_generator(4,2,0, test = False)
+    print board_generator(4,3,0, test = False)
