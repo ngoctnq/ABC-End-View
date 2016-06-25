@@ -576,31 +576,3 @@ def shabby_printing(board, constraint, diag, equation_list):
     for i in equation_list:
         print i
     print
-
-if __name__ == '__main__':
-    print '_'*50
-    print '\n'
-
-    # dim = 4
-    # board = generate_empty_board(dim)
-    # constraint = [
-    #     [0,0,2,0],
-    #     [0,0,0,3],
-    #     [0,3,0,0],
-    #     [0,0,0,2]]
-    # choices = 2
-    # diag = False
-    # board[0][2] = 2
-    # board[1][2] = 3
-
-    board, constraint, choices, diag = janko_parser(janko_get_text(100))
-
-    equation_list = equation_list_init(board, constraint, choices, diag)
-    shabby_printing(board, constraint, diag, equation_list)
-
-    while True:
-        if equation_list_check(board, equation_list) and \
-                equation_list_reduction(board, equation_list) is None:
-            shabby_printing(board, constraint, diag, equation_list)
-        else:
-            break
