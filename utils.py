@@ -6,6 +6,9 @@ import random
 alert_shortcircuit = False
 reduce_border_first = False
 
+# TEST BORDER
+#__________
+
 # check if all bound are satisfied - assume it is legit already
 # return the first condition-breaking square, or none otherwise
 def first_unconstrained_bound(board, constraint, choices, diag = False):
@@ -93,6 +96,9 @@ def first_unconstrained_bound(board, constraint, choices, diag = False):
 def is_bound_satisfied(board, constraint, choices):
     # enter a line so it'd collapse
     return first_unconstrained_bound(board, constraint, choices) is None
+
+# MAIN
+#__________
 
 # generate an empty constraint
 def empty_constraint(dim):
@@ -734,6 +740,9 @@ def solve_from_partial(board, constraint, choices, diag, short_circuit = False):
 def has_unique_solution(constraint, choices, diag):
     return 1 == len(solve(constraint, choices, diag, True)[0])
 
+# GENERATOR
+#__________
+
 # keeps removing constraints til least solvable
 def reduce_constraints(constraint, choices, diag, criteria):
     cons = available_constraints(constraint)
@@ -1050,7 +1059,6 @@ def solver_gui():
     print "total number of solutions:", len(solutions_list)
     print "total number of trials:", counts[0]
     print "total number of expansions:", counts[1]
-
 
 if __name__ == '__main__':
     solver_gui()
