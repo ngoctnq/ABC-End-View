@@ -604,3 +604,4 @@ def matrix_test():
             shabby_printing(board, constraint, diag, equation_list)
         else:
             break
+            
