@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+from copy import deepcopy
 import urllib2
 from bs4 import BeautifulSoup
 ''' A well documented digital conversion of ABC Endview puzzle.
@@ -12,7 +13,6 @@ from bs4 import BeautifulSoup
     '''
 
 # flags, constants
-logging = True
 TOP = 0
 BOTTOM = 1
 LEFT = 2
@@ -70,20 +70,30 @@ def populate_empty_board(board, choices):
 #___________
 
 def remove_char(board, coord, char):
-    ''' Remove a char from a label, and return if anything is changed.'''
+    ''' Remove a char from a label, and return if anything is changed.
+        This is the only place a cell can get emptied, so it'd raise an error.
+        '''
+    # log('removing '+char+' from coord '+str(coord))
+    
+    if char == '':
+        raise ValueError('no character to replace')
     if char not in board[coord[0]][coord[1]]:
         return False
     else:
         board[coord[0]][coord[1]] = \
             board[coord[0]][coord[1]].replace(char, '')
-        return True
+    if board[coord[0]][coord[1]] == '':
+        raise ValueError('empty cell at ' + str(coord))
+    return True
 
 def initial_reduction(board, constraint, choices):
     ''' Removes impossibles given by constraints.
         For example, if 'A' is given, with choices 'ABX' with dimension 4,
             then A cannot be in the last cell of a row/column.
+        Also, if 2 A's are in the constraints, one of them is an X.
         '''
     dim = get_dim(board)
+    max_x = dim - len(choices) + 1
     if 'X' in choices:
         len_choices_without_x = len(choices) - 1
     else:
@@ -91,24 +101,97 @@ def initial_reduction(board, constraint, choices):
 
     # top constraint
     for i in range(dim):
-        for j in range(len_choices_without_x - 1):
-            remove_char(board, [dim - 1 - j, i], constraint[0][i])
+        if constraint[0][i] != '':
+            for j in range(len_choices_without_x - 1):
+                remove_char(board, [dim - 1 - j, i], constraint[0][i])
+            for c in choices:
+                if c != 'X' and c != constraint[0][i]:
+                    remove_char(board, [0, i], c)
+    # same-letter constraint implies X
+    implied_x = 0
+    implied_x_letters = []
+    for c in choices:
+        if c != 'X':
+            count = constraint[0].count(c)
+            if count > 1:
+                implied_x += (count - 1)
+                implied_x_letters.append(c)
+    if implied_x == max_x:
+        for i in range(dim):
+            if constraint[0][i] not in implied_x_letters:
+                remove_char(board, [0, i], 'X')
+
     # bottom constraint
     for i in range(dim):
-        for j in range(len_choices_without_x - 1):
-            remove_char(board, [j, i], constraint[1][i])
+        if constraint[1][i] != '':
+            for j in range(len_choices_without_x - 1):
+                remove_char(board, [j, i], constraint[1][i])
+            for c in choices:
+                if c != 'X' and c != constraint[1][i]:
+                    remove_char(board, [dim - 1, i], c)
+    # same-letter constraint implies X
+    implied_x = 0
+    implied_x_letters = []
+    for c in choices:
+        if c != 'X':
+            count = constraint[1].count(c)
+            if count > 1:
+                implied_x += (count - 1)
+                implied_x_letters.append(c)
+    if implied_x == max_x:
+        for i in range(dim):
+            if constraint[1][i] not in implied_x_letters:
+                remove_char(board, [dim - 1, i], 'X')
+
     # left constraint
     for i in range(dim):
-        for j in range(len_choices_without_x - 1):
-            remove_char(board, [i, dim - 1 - j], constraint[2][i])
+        if constraint[2][i] != '':
+            for j in range(len_choices_without_x - 1):
+                remove_char(board, [i, dim - 1 - j], constraint[2][i])
+            for c in choices:
+                if c != 'X' and c != constraint[2][i]:
+                    remove_char(board, [i, 0], c)
+    # same-letter constraint implies X
+    implied_x = 0
+    implied_x_letters = []
+    for c in choices:
+        if c != 'X':
+            count = constraint[2].count(c)
+            if count > 1:
+                implied_x += (count - 1)
+                implied_x_letters.append(c)
+    if implied_x == max_x:
+        for i in range(dim):
+            if constraint[2][i] not in implied_x_letters:
+                remove_char(board, [i, 0], 'X')
+
     # right constraint
     for i in range(dim):
-        for j in range(len_choices_without_x - 1):
-            remove_char(board, [i, j], constraint[3][i])
+        if constraint[3][i] != '':
+            for j in range(len_choices_without_x - 1):
+                remove_char(board, [i, j], constraint[3][i])
+            for c in choices:
+                if c != 'X' and c != constraint[3][i]:
+                    remove_char(board, [i, dim - 1], c)
+    # same-letter constraint implies X
+    implied_x = 0
+    implied_x_letters = []
+    for c in choices:
+        if c != 'X':
+            count = constraint[3].count(c)
+            if count > 1:
+                implied_x += (count - 1)
+                implied_x_letters.append(c)
+    if implied_x == max_x:
+        for i in range(dim):
+            if constraint[3][i] not in implied_x_letters:
+                remove_char(board, [i, dim - 1], 'X')
 
-def solve(board, constraint, choices, diag):
+def solve(board, constraint, choices, diag, short_circuit = False):
     ''' Master ABC Endview solver.
         Solve the board until unfilled is empty.
+        If short_circuit flag is set to True, then return whether the problem
+            has more than 1 solution.
         '''
     dim = get_dim(board)
     initial_reduction(board, constraint, choices)
@@ -116,26 +199,231 @@ def solve(board, constraint, choices, diag):
     for i in range(dim):
         for j in range(dim):
             unfilled.append([i,j])
+    solution_list = []
+
+    # log(stringify(board, constraint, True))
+
+    trials = solve_core(board, constraint, choices, diag,
+        unfilled, solution_list, short_circuit)
+
+    if short_circuit:
+        return len(solution_list) > 1
+    else:
+        return solution_list, trials
+
+def solve_core(board, constraint, choices, diag, unfilled, solution_list,
+        short_circuit = False):
+    ''' Main solving method, with trial-and-error.
+        If short_circuit flag is set to True, then when the problem is
+            determined to have more than 1 solution, it terminates instantly.
+        '''
+    if short_circuit and len(solution_list) > 1:
+        return 0
 
     changed = True
-    while changed and len(unfilled) != 0:
-        changed = solve_core(board, constraint, choices, diag, unfilled)
+    try:
+        while changed and len(unfilled) != 0:
+            changed = fill_obvious_label(board, constraint, choices,
+                diag, unfilled)
+        changed = check_for_only_choices(board, choices, diag)
+    except ValueError:
+        # this means it yields an invalid board
+        return 0
+    # if something is changed, tail call to keep trying solving
+    if changed:
+        return solve_core(board, constraint, choices, diag,
+            unfilled, solution_list)
+    else:
+        # if everything is filled
+        if len(unfilled) == 0:
+            solution_list.append(board)
+            return 0
+        # trial and error
 
-def solve_core(board, constraint, choices, diag, unfilled):
-    ''' Do propagation techniques here.
-        Return whether anything have changed.
-        '''
+        # see where it gets stuck
+        # log("STUCK")
+        # log(stringify(board, constraint, True))
+
+        x, y = fewest_choices_cell(board, unfilled)
+        new_board = deepcopy(board)
+        new_unfilled = deepcopy(unfilled)
+        new_board[x][y] = new_board[x][y][0]
+        board[x][y] = board[x][y][1:]
+
+        return 1 + \
+            solve_core(new_board, constraint, choices, diag,
+                new_unfilled, solution_list) + \
+            solve_core(board, constraint, choices, diag,
+                unfilled, solution_list)
+
+def fewest_choices_cell(board, unfilled):
+    ''' Find the cell with the fewest choice. '''
+    # placeholder
+    min_choice = 999
+    x = -1
+    y = -1
+    for coord in unfilled:
+        no_of_choices = len(board[coord[0]][coord[1]])
+        if no_of_choices == 1:
+            continue
+        elif no_of_choices == 2:
+            x = coord[0]
+            y = coord[1]
+            break
+        elif no_of_choices < min_choice and \
+                no_of_choices > 1:
+            x = coord[0]
+            y = coord[1]
+            min_choice = no_of_choices
+    if x == -1 and y == -1:
+        raise ValueError("FATAL: unexpected error in fewest_choices_cell")
+    return x, y
+
+def check_for_only_choices(board, choices, diag):
+    ''' If a row/column only have a place to fill a letter, it gets filled. '''
+    dim = get_dim(board)
+    max_x = dim - len(choices) + 1
+    changed = False
+
+    for c in choices: 
+        if c != 'X':
+            # check rows
+            for i in range(dim):
+                letter_found = 0
+                for j in range(dim):
+                    if c in board[i][j]:
+                        letter_found += 1
+                    if letter_found > 1:
+                        break
+                if letter_found == 1:
+                    for j in range(dim):
+                        if c in board[i][j]:
+                            for char in choices:
+                                if char != c:
+                                    changed = remove_char(board, [i, j], char)\
+                                        or changed
+            # check columns
+            for i in range(dim):
+                letter_found = 0
+                for j in range(dim):
+                    if c in board[j][i]:
+                        letter_found += 1
+                    if letter_found > 1:
+                        break
+                if letter_found == 1:
+                    for j in range(dim):
+                        if c in board[j][i]:
+                            for char in choices:
+                                if char != c:
+                                    changed = remove_char(board, [j, i], char)\
+                                        or changed
+            # check diagonals
+            if diag:
+                # check main diagonal
+                letter_found = 0
+                for i in range(dim):
+                    if c in board[i][i]:
+                        letter_found += 1
+                    if letter_found > 1:
+                        break
+                if letter_found == 1:
+                    for i in range(dim):
+                        if c in board[i][i]:
+                            for char in choices:
+                                if char != c:
+                                    changed = remove_char(board, [i, i], char)\
+                                        or changed
+                # check anti diagonal
+                letter_found = 0
+                for i in range(dim):
+                    if c in board[i][dim - 1 - i]:
+                        letter_found += 1
+                    if letter_found > 1:
+                        break
+                if letter_found == 1:
+                    for i in range(dim):
+                        if c in board[i][dim - 1 - i]:
+                            for char in choices:
+                                if char != c:
+                                    changed = remove_char(board,
+                                        [i, dim - 1 - i], char) or changed
+        # there can be more than one X
+        else:
+            # check rows
+            for i in range(dim):
+                x_count = 0
+                for j in range(dim):
+                    if 'X' in board[i][j]:
+                        x_count += 1
+                if x_count == max_x:
+                    for j in range(dim):
+                        if 'X' in board[i][j]:
+                            for c in choices:
+                                if c != 'X':
+                                    changed = remove_char(board,
+                                        [i, j], c) or changed
+                elif x_count < max_x:
+                    raise ValueError('FATAL! fewer exes than should ' + \
+                        'in row ' + str(i))
+            # check column
+            for i in range(dim):
+                x_count = 0
+                for j in range(dim):
+                    if 'X' in board[j][i]:
+                        x_count += 1
+                if x_count == max_x:
+                    for j in range(dim):
+                        if 'X' in board[j][i]:
+                            for c in choices:
+                                if c != 'X':
+                                    changed = remove_char(board,
+                                        [j, i], c) or changed
+                elif x_count < max_x:
+                    raise ValueError('FATAL! fewer exes than should ' + \
+                        'in column ' + str(i))
+            # check diagonals
+            if diag:
+                # main diagonal
+                x_count = 0
+                for i in range(dim):
+                    if 'X' in board[i][i]:
+                        x_count += 1
+                if x_count == max_x:
+                    for i in range(dim):
+                        if 'X' in board[i][i]:
+                            for c in choices:
+                                if c != 'X':
+                                    changed = remove_char(board, [i, i], c)\
+                                        or changed
+                elif x_count < max_x:
+                    raise ValueError('FATAL! too few exes on main diagonal')
+                # anti diagonal
+                x_count = 0
+                for i in range(dim):
+                    if 'X' in board[i][dim - 1 - i]:
+                        x_count += 1
+                if x_count == max_x:
+                    for i in range(dim):
+                        if 'X' in board[i][dim - 1 - i]:
+                            for c in choices:
+                                if c != 'X':
+                                    changed = remove_char(board,
+                                        [i, dim - 1 - i], c) or changed
+                elif x_count < max_x:
+                    raise ValueError('FATAL! too few exes on anti diagonal')
+
+    return changed
+
+def fill_obvious_label(board, constraint, choices, diag, unfilled):
+    ''' Fill cells that have only one possible letter. '''
     changed = False
     for coord in unfilled:
-        idx = unfilled.index(coord)
-        deleted = True
-        while deleted:
-            if len(board[coord[0]][coord[1]] == 1):
-                changed = update_after_fill(board, constraint,
-                    choices, diag, coord) or changed
-                del unfilled[idx]
-            else:
-                deleted = False
+        if len(board[coord[0]][coord[1]]) == 1:
+            idx = unfilled.index(coord)
+            update_after_fill(board, constraint, choices, diag, coord)
+            changed = True
+            del unfilled[idx]
+            break
     return changed
 
 def update_after_fill(board, constraint, choices, diag, coord):
@@ -147,35 +435,384 @@ def update_after_fill(board, constraint, choices, diag, coord):
     y = coord[1]
     char = board[x][y]
     changed = False
+    max_x = dim - len(choices) + 1
 
-    # update on the row
-    for i in range(dim):
-        if i != y:
-            changed = remove_char(board, [x, i], char) or changed
+    # update row/column of that letter's existence
+    if char != 'X':
+        # row
+        for i in range(dim):
+            if i != y:
+                changed = remove_char(board, [x, i], char) or changed
 
-    # update on the column
-    for i in range(dim):
-        if i != x:
-            changed = remove_char(board, [i, y], char) or changed
+        # column
+        for i in range(dim):
+            if i != x:
+                changed = remove_char(board, [i, y], char) or changed
+    else:
+        # update due to the max-X rule - then remove X from that row/column
+        # max_x in row
+        x_count_real = 0
+        for i in range(dim):
+            if board[x][i] == 'X':
+                x_count_real += 1
+        if x_count_real == max_x:
+            for i in range(dim):
+                if board[x][i] != 'X':
+                    changed = remove_char(board, [x, i], 'X') or changed
+        elif x_count_real > max_x:
+            raise ValueError('FATAL! more exes than should in row ' + str(x))
+        # max_x in column
+        x_count_real = 0
+        for i in range(dim):
+            if 'X' in board[i][y]:
+                if board[i][y] == 'X':
+                    x_count_real += 1
+        if x_count_real == max_x:
+            for i in range(dim):
+                if board[i][y] != 'X':
+                    changed = remove_char(board, [i, y], 'X') or changed
+        elif x_count_real > max_x:
+            raise ValueError('FATAL! more exes than should in column '+ str(y))
 
     # update on the diagonals
     if diag:
-        if x == y:
+        if char != 'X':
+            if x == y:
+                for i in range(dim):
+                    if i != x:
+                        changed = remove_char(board, [i, i], char) or changed
+            if x + y == dim - 1:
+                for i in range(dim):
+                    if i != x:
+                        changed = remove_char(board, [i, dim - 1 - i], char) \
+                            or changed
+        else:
+            # run general max_x rule on both diagonals
+            # main diagonal
+            x_count_real = 0
             for i in range(dim):
-                if i != x:
-                    changed = remove_char(board, [i, i], char) or changed
-        if x + y == dim - 1:
-            for i in range(dim):
-                if i != x:
-                    changed = remove_char(board, [i, dim - 1 - i], char) \
-                        or changed
+                if board[i][i] == 'X':
+                    x_count_real += 1
+            if x_count_real == max_x:
+                for i in range(dim):
+                    if board[i][i] != 'X':
+                        changed = remove_char(board, [i, i], 'X') or changed
+            elif x_count_real > max_x:
+                raise ValueError('FATAL! too many exes on main diagonal')
 
-    # update due to the max-X rule - then remove X from that row/column
-    max_x = dim - len(choices) + 1
+            # anti-diagonal
+            x_count_real = 0
+            for i in range(dim):
+                if board[i][dim - 1 - i] == 'X':
+                    x_count_real += 1
+            if x_count_real == max_x:
+                for i in range(dim):
+                    if board[i][dim - 1 - i] != 'X':
+                        changed = remove_char(board, [i, dim - 1 - i], 'X')\
+                            or changed
+            elif x_count_real > max_x:
+                raise ValueError('FATAL! too many exes on anti diagonal')
 
     # update due to constraint - all X til constraint's satisfied.
+    if char == 'X':
+        # top
+        if constraint[0][y] != '':
+            for i in range(max_x + 1):
+                if board[i][y] == constraint[0][y]:
+                    break
+                elif board[i][y] == 'X':
+                    continue
+                else:
+                    for c in choices:
+                        if c != 'X' and c != constraint[0][y]:
+                            changed = remove_char(board, [i, y], c) or changed
+                    break
+        # bottom
+        if constraint[1][y] != '':
+            for i in range(max_x + 1):
+                if board[dim - 1 - i][y] == constraint[1][y]:
+                    break
+                elif board[dim - 1 - i][y] == 'X':
+                    continue
+                else:
+                    for c in choices:
+                        if c != 'X' and c != constraint[1][y]:
+                            changed = remove_char(board, [dim - 1 - i, y], c)\
+                                or changed
+                    break
+        # left
+        if constraint[2][x] != '':
+            for i in range(max_x + 1):
+                if board[x][i] == constraint[2][x]:
+                    break
+                elif board[x][i] == 'X':
+                    continue
+                else:
+                    for c in choices:
+                        if c != 'X' and c != constraint[2][x]:
+                            changed = remove_char(board, [x, i], c) or changed
+                    break
+        # right
+        if constraint[3][x] != '':
+            for i in range(max_x + 1):
+                if board[x][dim - 1 - i] == constraint[3][x]:
+                    break
+                elif board[x][dim - 1 - i] == 'X':
+                    continue
+                else:
+                    for c in choices:
+                        if c != 'X' and c != constraint[3][x]:
+                            changed = remove_char(board, [x, dim - 1 - i], c)\
+                                or changed
+                    break
+    else:
+        # top
+        if char == constraint[0][y]:
+            for i in range(max_x + 1):
+                if board[i][y] == char:
+                    break
+                else:
+                    for c in choices:
+                        if c != 'X':
+                            changed = remove_char(board, [i, y], c) or changed
+        # if it's not constraint, then anything after that isn't
+        elif constraint[0][y] != '':
+            for i in range(x + 1, dim):
+                changed = remove_char(board, [i, y], constraint[0][y]) \
+                    or changed
+        # bottom
+        if char == constraint[1][y]:
+            for i in range(max_x + 1):
+                if board[dim - 1 - i][y] == char:
+                    break
+                else:
+                    for c in choices:
+                        if c != 'X':
+                            changed = remove_char(board, [dim - 1 - i, y], c) \
+                                or changed
+        # if it's not constraint, then anything after that isn't
+        elif constraint[1][y] != '':
+            for i in range(x):
+                changed = remove_char(board, [i, y],
+                    constraint[1][y]) or changed
+        # left
+        if char == constraint[2][x]:
+            for i in range(max_x + 1):
+                if board[x][i] == char:
+                    break
+                else:
+                    for c in choices:
+                        if c != 'X':
+                            changed = remove_char(board, [x, i], c) or changed
+        # if it's not constraint, then anything after that isn't
+        elif constraint[2][x] != '':
+            for i in range(y + 1, dim):
+                changed = remove_char(board, [x, i], constraint[2][x]) \
+                    or changed
+        # right
+        if char == constraint[3][x]:
+            for i in range(max_x + 1):
+                if board[x][dim - 1 - i] == char:
+                    break
+                else:
+                    for c in choices:
+                        if c != 'X':
+                            changed = remove_char(board, [x, dim - 1 - i], c) \
+                                or changed
+        # if it's not constraint, then anything after that isn't
+        elif constraint[3][x] != '':
+            for i in range(y):
+                changed = remove_char(board, [x, i],
+                    constraint[3][x]) or changed
 
     return changed
+
+# INPUT SECTION
+#___________
+
+def not_cap_chars(word):
+    ''' Check if all are capital and sequential from A. '''
+    for i in range(len(word)):
+        if ord(word[i]) != ord('A')+i:
+            return True
+    return False
+
+def input_gui():
+    ''' GUI to input a problem. '''
+    print 'ABC ENDVIEW SOLVER'
+    print
+
+    not_entered = True
+    while not_entered:
+        text = raw_input("Dimension (n x n)? ")
+        try:
+            dim = int(text)
+            not_entered = False
+            if dim < 2:
+                raise ValueError
+        except ValueError:
+            print "Value error!", "Dimension has to be an integer greater than 1!"
+
+    constraint = generate_empty_constraint(dim)
+    #______________
+    not_entered = True
+    while not_entered:
+        choices = raw_input("Characters to fill in, with no delimiters: ") \
+            .upper()
+        if not_cap_chars(choices):
+            print "String error!", "Only sequencial letters are allowed."
+        elif len(choices) > dim:
+            print "String error!", "Number of choices must be less than " + \
+                "or equal to " + str(dim) + "."
+        else:
+            not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert column-beginning constraints " + \
+            "- Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", \
+                "Number of constraints must be exactly "+str(dim)+"."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[0][i] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i] + \
+                            " is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert column-ending constraints " + \
+            "- Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", \
+                "Number of constraints must be exactly "+str(dim)+"."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[1][i] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i] + \
+                            " is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert row-beginning constraints - " + \
+            "Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", \
+                "Number of constraints must be exactly " + str(dim) + "."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[2][i] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i] + \
+                            " is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        constraint_sub = raw_input("Insert row-ending constraints - " + \
+            "Continuously, '-' for none: ").upper()
+        if len(constraint_sub) != dim:
+            print "Constraints error!", \
+                "Number of constraints must be exactly "+str(dim)+"."
+        else:
+            legit = True
+            while legit:
+                for i in range(dim):
+                    if constraint_sub[i] in choices:
+                        constraint[3][i] = constraint_sub[i]
+                    elif constraint_sub[i] != '-':
+                        legit = False
+                        print "String error!", constraint_sub[i]+\
+                            " is not a valid entry!"
+                        break
+                if i == dim-1:
+                    break
+            if legit:
+                not_entered = False
+    #______________
+    not_entered = True
+    while not_entered:
+        not_entered = False
+        result = raw_input("Are diagonals required to have all characters? ") \
+            .upper()
+        if result in ['YES','Y','1']:
+            diag = True
+        elif result in ['NO','N','0']:
+            diag = False
+        else:
+            print 'Not a valid answer!'
+            not_entered = True
+    # start initializing
+    if dim > len(choices):
+        choices += 'X'
+    #______________
+    not_entered = True
+    while not_entered:
+        not_entered = False
+        result = raw_input("Are there prefilled boxes? ").upper()
+        if result in ['YES','Y','1']:
+            partial = True
+        elif result in ['NO','N','0']:
+            partial = False
+        else:
+            print 'Not a valid answer!'
+            not_entered = True
+    #______________
+    board = generate_empty_board(dim)
+    populate_empty_board(board, choices)
+    if partial:
+        print "Input coordinates and corresponding value, " + \
+            "blankspace-separated; blank to end."
+        while True:
+            result = raw_input().upper()
+            if result == '':
+                break
+            else:
+                try:
+                    clues = result.split()
+                    if len(clues) != 3:
+                        raise ValueError
+                    i = int(clues[0])-1
+                    j = int(clues[1])-1
+                    if len(clues[2])!= 1 or clues[2] == 'X' or \
+                        clues[2] not in choices:
+                        raise ValueError
+                    if i<0 or j<0 or i>=dim or j>=dim:
+                        raise ValueError
+                    board[i][j] = clues[2]
+                except:
+                    print 'Not a valid input! Ignored last input.'
+    print 'All input taken!'
+    return board, constraint, choices, diag
 
 # JANKO SECTION
 #___________
@@ -390,11 +1027,9 @@ def stringify(board, constraint = None, dev = False):
 
 def log(msg, priority = 1):
     ''' for logging purposes, can change stream or write to file. '''
-    if logging:
-        print msg
+    print msg
 
 # EXPERIMENTAL SECTION FROM NOW ON
-
 # TRANSFORMATION SECTION
 #__________
 
@@ -495,5 +1130,12 @@ def swap_letter(board, constraint, perm):
 #___________
 
 if __name__ == '__main__':
-    board, constraint, choices, diag = janko_parser(janko_get_text(480))
-    print stringify(board, constraint, True)
+    board, constraint, choices, diag = janko_parser(janko_get_text(46))
+    # board, constraint, choices, diag = input_gui()
+    solution_list, trials = solve(board, constraint, choices, diag)
+    print 'number of trials:', trials
+    print 'number of slns  :', len(solution_list)
+    for i in solution_list:
+        print 
+        print stringify(i, constraint, True)
+
