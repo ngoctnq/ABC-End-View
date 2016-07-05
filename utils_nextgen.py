@@ -207,7 +207,13 @@ def solve(board, constraint, choices, diag = False, short_circuit = False):
             has more than 1 solution.
         '''
     dim = get_dim(board)
-    initial_reduction(board, constraint, choices)
+    
+    # if we are really (un)lucky, then it won't even pass the valet round
+    try:
+        initial_reduction(board, constraint, choices)
+    except ValueError:
+        return [], 0
+
     unfilled = []
     for i in range(dim):
         for j in range(dim):
@@ -220,7 +226,7 @@ def solve(board, constraint, choices, diag = False, short_circuit = False):
         unfilled, solution_list, short_circuit)
 
     if short_circuit:
-        return len(solution_list) > 1
+        return len(solution_list) != 1
     else:
         return solution_list, trials
 
@@ -1267,7 +1273,11 @@ def constraint_score(constraint, side = -1, inverted = False):
         if seen_index == 0:
             seen_index = BIG_NUMBER
         unique_score += (BIG_NUMBER - seen_index) * (10 ** power)
-    return ((dim - no_of_empty) * (10 ** (BIG_NUMBER + 1)) + unique_score)
+    score = ((dim - no_of_empty) * (10 ** (BIG_NUMBER + 1)) + unique_score)
+    if score > 0:
+        return score
+    else:
+        return 1
 
 def calculate_corner(constraint, corner):
     # combining the 2 scores from the sides.
@@ -1359,41 +1369,16 @@ def convert_to_family_generator(board, constraint, choices):
     else:
         # order of preference: top, left, bottom, right
         # probably won't happen, or if it would it'd be perfectly symmetrical?
+        log('----------', DEV)
         log('CHECK IF BOARD IS PERFECTLY SYMMETRICAL', DEV)
+        log(stringify(board, constraint), DEV)
+        log('----------', DEV)
         pass
 
     # log(stringify(board, constraint), DEV)
 
     # after transforming is swapping letters
     swap_letters_after_transformations(board, constraint, choices)
-
-def compare_left_and_right(board, constraint):
-    ''' Compare if a horizontal flip is necessary.
-        Return whether changed.
-        '''
-    val1_left = count_element(constraint[2])
-    val1_right = count_element(constraint[3])
-    val2_left = count_unique(constraint[2])
-    val2_right = count_unique(constraint[3])
-    if val1_left < val1_right or \
-            (val1_left == val1_right and val2_left < val2_right):
-        flip_horizontal(board, constraint)
-        return True
-    return False
-
-def compare_top_and_bottom(board, constraint):
-    ''' Compare if a vertical flip is necessary.
-        Return whether changed.
-        '''
-    val1_top = count_element(constraint[0])
-    val1_bot = count_element(constraint[1])
-    val2_top = count_unique(constraint[0])
-    val2_bot = count_unique(constraint[1])
-    if val1_top < val1_bot or \
-            (val1_top == val1_bot and val2_top < val2_bot):
-        flip_vertical(board, constraint)
-        return True
-    return False
 
 def compare_main_opposite_corners(board, constraint):
     val2_top = count_unique(constraint[0])
