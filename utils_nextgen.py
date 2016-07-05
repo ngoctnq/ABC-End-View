@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 from copy import deepcopy
+import sys
 import urllib2
 from bs4 import BeautifulSoup
 ''' A well documented digital conversion of ABC Endview puzzle.
@@ -17,6 +18,10 @@ TOP = 0
 BOTTOM = 1
 LEFT = 2
 RIGHT = 3
+LOG = -1
+SOLVER = 9
+DEV = 99
+BIG_NUMBER = 9
 
 # INITIALIZATION SECTION
 #___________
@@ -108,14 +113,7 @@ def initial_reduction(board, constraint, choices):
                 if c != 'X' and c != constraint[0][i]:
                     remove_char(board, [0, i], c)
     # same-letter constraint implies X
-    implied_x = 0
-    implied_x_letters = []
-    for c in choices:
-        if c != 'X':
-            count = constraint[0].count(c)
-            if count > 1:
-                implied_x += (count - 1)
-                implied_x_letters.append(c)
+    implied_x, implied_x_letters = implied_x_count(constraint, choices, TOP)
     if implied_x == max_x:
         for i in range(dim):
             if constraint[0][i] not in implied_x_letters:
@@ -130,14 +128,7 @@ def initial_reduction(board, constraint, choices):
                 if c != 'X' and c != constraint[1][i]:
                     remove_char(board, [dim - 1, i], c)
     # same-letter constraint implies X
-    implied_x = 0
-    implied_x_letters = []
-    for c in choices:
-        if c != 'X':
-            count = constraint[1].count(c)
-            if count > 1:
-                implied_x += (count - 1)
-                implied_x_letters.append(c)
+    implied_x, implied_x_letters = implied_x_count(constraint, choices, BOTTOM)
     if implied_x == max_x:
         for i in range(dim):
             if constraint[1][i] not in implied_x_letters:
@@ -152,14 +143,7 @@ def initial_reduction(board, constraint, choices):
                 if c != 'X' and c != constraint[2][i]:
                     remove_char(board, [i, 0], c)
     # same-letter constraint implies X
-    implied_x = 0
-    implied_x_letters = []
-    for c in choices:
-        if c != 'X':
-            count = constraint[2].count(c)
-            if count > 1:
-                implied_x += (count - 1)
-                implied_x_letters.append(c)
+    implied_x, implied_x_letters = implied_x_count(constraint, choices, LEFT)
     if implied_x == max_x:
         for i in range(dim):
             if constraint[2][i] not in implied_x_letters:
@@ -174,20 +158,49 @@ def initial_reduction(board, constraint, choices):
                 if c != 'X' and c != constraint[3][i]:
                     remove_char(board, [i, dim - 1], c)
     # same-letter constraint implies X
-    implied_x = 0
-    implied_x_letters = []
-    for c in choices:
-        if c != 'X':
-            count = constraint[3].count(c)
-            if count > 1:
-                implied_x += (count - 1)
-                implied_x_letters.append(c)
+    implied_x, implied_x_letters = implied_x_count(constraint, choices, RIGHT)
     if implied_x == max_x:
         for i in range(dim):
             if constraint[3][i] not in implied_x_letters:
                 remove_char(board, [i, dim - 1], 'X')
 
-def solve(board, constraint, choices, diag, short_circuit = False):
+def implied_x_count(constraint, choices, side):
+    ''' Count implied exes caused by constraints of the same letter. '''
+    implied_x = 0
+    implied_x_letters = []
+    if side == TOP:
+        for c in choices:
+            if c != 'X':
+                count = constraint[0].count(c)
+                if count > 1:
+                    implied_x += (count - 1)
+                    implied_x_letters.append(c)
+    elif side == BOTTOM:
+        for c in choices:
+            if c != 'X':
+                count = constraint[1].count(c)
+                if count > 1:
+                    implied_x += (count - 1)
+                    implied_x_letters.append(c)
+    elif side == LEFT:
+        for c in choices:
+            if c != 'X':
+                count = constraint[2].count(c)
+                if count > 1:
+                    implied_x += (count - 1)
+                    implied_x_letters.append(c)
+    elif side == RIGHT:
+        for c in choices:
+            if c != 'X':
+                count = constraint[3].count(c)
+                if count > 1:
+                    implied_x += (count - 1)
+                    implied_x_letters.append(c)
+    else:
+        raise ValueError('not a valid side of constraint')
+    return implied_x, implied_x_letters
+
+def solve(board, constraint, choices, diag = False, short_circuit = False):
     ''' Master ABC Endview solver.
         Solve the board until unfilled is empty.
         If short_circuit flag is set to True, then return whether the problem
@@ -241,8 +254,8 @@ def solve_core(board, constraint, choices, diag, unfilled, solution_list,
         # trial and error
 
         # see where it gets stuck
-        # log("STUCK")
-        # log(stringify(board, constraint, True))
+        # log("STUCK", DEV)
+        # log(stringify(board, constraint, True), DEV)
 
         x, y = fewest_choices_cell(board, unfilled)
         new_board = deepcopy(board)
@@ -513,58 +526,99 @@ def update_after_fill(board, constraint, choices, diag, coord):
             elif x_count_real > max_x:
                 raise ValueError('FATAL! too many exes on anti diagonal')
 
-    # update due to constraint - all X til constraint's satisfied.
+    # update due to constraint:
+    # if X is in the earlier group: all X til constraint's satisfied
+    # if X is in the latter group: the constraint has to be satisfied earlier
     if char == 'X':
         # top
         if constraint[0][y] != '':
-            for i in range(max_x + 1):
-                if board[i][y] == constraint[0][y]:
-                    break
-                elif board[i][y] == 'X':
-                    continue
-                else:
-                    for c in choices:
-                        if c != 'X' and c != constraint[0][y]:
-                            changed = remove_char(board, [i, y], c) or changed
-                    break
+            if x in range(max_x + 1):
+                for i in range(max_x + 1):
+                    if board[i][y] == constraint[0][y]:
+                        break
+                    elif board[i][y] == 'X':
+                        continue
+                    else:
+                        for c in choices:
+                            if c != 'X' and c != constraint[0][y]:
+                                changed = remove_char(board, [i, y], c) \
+                                    or changed
+                        break
+            else:
+                x_count_real = 0
+                for i in range(max_x + 1, dim):
+                    if board[i][y] == 'X':
+                        x_count_real += 1
+                for i in range(x_count_real):
+                    changed = remove_char(board, [max_x - i, y], 
+                        constraint[0][y]) or changed
+
         # bottom
         if constraint[1][y] != '':
-            for i in range(max_x + 1):
-                if board[dim - 1 - i][y] == constraint[1][y]:
-                    break
-                elif board[dim - 1 - i][y] == 'X':
-                    continue
-                else:
-                    for c in choices:
-                        if c != 'X' and c != constraint[1][y]:
-                            changed = remove_char(board, [dim - 1 - i, y], c)\
-                                or changed
-                    break
+            if x in range(dim - max_x - 1, dim):
+                for i in range(max_x + 1):
+                    if board[dim - 1 - i][y] == constraint[1][y]:
+                        break
+                    elif board[dim - 1 - i][y] == 'X':
+                        continue
+                    else:
+                        for c in choices:
+                            if c != 'X' and c != constraint[1][y]:
+                                changed = remove_char(board,
+                                    [dim - 1 - i, y], c) or changed
+                        break
+            else:
+                x_count_real = 0
+                for i in range(dim - max_x - 1):
+                    if board[i][y] == 'X':
+                        x_count_real += 1
+                for i in range(x_count_real):
+                    changed = remove_char(board, [dim - max_x - 1 + i, y], 
+                        constraint[1][y]) or changed
         # left
         if constraint[2][x] != '':
-            for i in range(max_x + 1):
-                if board[x][i] == constraint[2][x]:
-                    break
-                elif board[x][i] == 'X':
-                    continue
-                else:
-                    for c in choices:
-                        if c != 'X' and c != constraint[2][x]:
-                            changed = remove_char(board, [x, i], c) or changed
-                    break
+            if y in range(max_x + 1):
+                for i in range(max_x + 1):
+                    if board[x][i] == constraint[2][x]:
+                        break
+                    elif board[x][i] == 'X':
+                        continue
+                    else:
+                        for c in choices:
+                            if c != 'X' and c != constraint[2][x]:
+                                changed = remove_char(board, [x, i], c) \
+                                    or changed
+                        break
+            else:
+                x_count_real = 0
+                for i in range(max_x + 1, dim):
+                    if board[x][i] == 'X':
+                        x_count_real += 1
+                for i in range(x_count_real):
+                    changed = remove_char(board, [x, max_x - i], 
+                        constraint[2][x]) or changed
         # right
         if constraint[3][x] != '':
-            for i in range(max_x + 1):
-                if board[x][dim - 1 - i] == constraint[3][x]:
-                    break
-                elif board[x][dim - 1 - i] == 'X':
-                    continue
-                else:
-                    for c in choices:
-                        if c != 'X' and c != constraint[3][x]:
-                            changed = remove_char(board, [x, dim - 1 - i], c)\
-                                or changed
-                    break
+            if y in range(dim - max_x - 1, dim):
+                for i in range(max_x + 1):
+                    if board[x][dim - 1 - i] == constraint[3][x]:
+                        break
+                    elif board[x][dim - 1 - i] == 'X':
+                        continue
+                    else:
+                        for c in choices:
+                            if c != 'X' and c != constraint[3][x]:
+                                changed = remove_char(board,
+                                    [x, dim - 1 - i], c) or changed
+                        break
+            else:
+                x_count_real = 0
+                for i in range(dim - max_x - 1):
+                    if board[x][i] == 'X':
+                        x_count_real += 1
+                for i in range(x_count_real):
+                    changed = remove_char(board, [x, dim - max_x - 1 + i], 
+                        constraint[3][x]) or changed
     else:
         # top
         if char == constraint[0][y]:
@@ -844,9 +898,9 @@ def janko_get_text(no = 0):
     directory += (no+'.txt')
     try:
         file = open(directory,'r')
-        log('file '+directory+' opened successfully.', 2)
+        log('file '+directory+' opened successfully.', LOG)
     except:
-        log('file '+directory+' does not exist, caching...', 2)
+        log('file '+directory+' does not exist, caching...', LOG)
         url = 'http://www.janko.at/Raetsel/Abc-End-View/'+no+'.a.htm'
         file = urllib2.urlopen(url)
         html_doc = file.read()
@@ -863,7 +917,7 @@ def janko_get_text(no = 0):
             file.write('\n')
         file.write(data[-1])
         file.close()
-        log('file '+directory+' saved successfully.', 2)
+        log('file '+directory+' saved successfully.', LOG)
     else:
         data = file.read().split('\n')
         file.close()
@@ -908,14 +962,14 @@ def janko_parser(data):
             topConstraint = data[0].upper().split()
             for i in range(dim):
                 if topConstraint[i] != '-':
-                    constraint[0][i] = topConstraint[i]
+                    constraint[0][i] = omni_to_letter(topConstraint[i])
             del data[0]
             del topConstraint
             #__________
             bottomConstraint = data[0].upper().split()
             for i in range(dim):
                 if bottomConstraint[i] != '-':
-                    constraint[1][i] = bottomConstraint[i]
+                    constraint[1][i] = omni_to_letter(bottomConstraint[i])
             del data[0]
             del bottomConstraint
             #__________
@@ -926,14 +980,14 @@ def janko_parser(data):
             leftConstraint = data[0].upper().split()
             for i in range(dim):
                 if leftConstraint[i] != '-':
-                    constraint[2][i] = leftConstraint[i]
+                    constraint[2][i] = omni_to_letter(leftConstraint[i])
             del data[0]
             del leftConstraint
             #__________
             rightConstraint = data[0].upper().split()
             for i in range(dim):
                 if rightConstraint[i] != '-':
-                    constraint[3][i] = rightConstraint[i]
+                    constraint[3][i] = omni_to_letter(rightConstraint[i])
             del data[0]
             del rightConstraint
         # problem lmao
@@ -947,9 +1001,21 @@ def janko_parser(data):
                 del data[0]
                 for j in range(dim):
                     if clues[j] != '-':
-                        board[i][j] = clues[j]
+                        board[i][j] = omni_to_letter(clues[j])
 
     return board, constraint, choices, diag
+
+def omni_to_letter(c):
+    ''' Convert number to letter. 
+        Some problems on Janko has numbers instead of letters in the source
+            code, confusing the solver.
+        '''
+    try:
+        i = int(c)
+        return chr(ord('A') - 1 + i)
+    except:
+        # not an int means its a normal character
+        return c
 
 # PRINTING SECTION
 #___________
@@ -1025,9 +1091,47 @@ def stringify(board, constraint = None, dev = False):
         ret += '   '
     return ret
 
-def log(msg, priority = 1):
+def log(msg, priority = LOG):
     ''' for logging purposes, can change stream or write to file. '''
-    print msg
+    if priority == LOG:
+        # print 'LOG:', msg
+        pass
+    elif priority == DEV:
+        print msg
+    elif priority == SOLVER:
+        # print msg
+        pass
+    else:
+        print msg
+        # pass
+
+def solve_main(no = -1):
+    ''' Pretty printing the output of a solver.
+        -1 triggers the input prompt, else get redirected to janko getter.
+        '''
+    log('\nABC Endview Solver', SOLVER)
+    if no == -1:
+        board, constraint, choices, diag = input_gui()
+    else:
+        board, constraint, choices, diag = janko_parser(janko_get_text(no))
+
+    # log(stringify(board, constraint, True), DEV)
+
+    solution_list, trials = solve(board, constraint, choices, diag)
+    log('__________\n', SOLVER)
+    log('number of trials: ' + str(trials), SOLVER)
+    log('number of slns  : ' + str(len(solution_list)), SOLVER)
+    log('__________\n', SOLVER)
+    for i in range(len(solution_list)):
+        log('Solution #' + str(i + 1)+'\n', SOLVER)
+        log(stringify(solution_list[i], constraint), SOLVER)
+        log('\n', SOLVER)
+
+    # if True:
+    # if trials > 0:
+        # log(str(no).ljust(3) + ' ' + \
+        #     str(len(solution_list)).rjust(3) + ' ' + \
+        #     str(trials).rjust(3), DEV)
 
 # EXPERIMENTAL SECTION FROM NOW ON
 # TRANSFORMATION SECTION
@@ -1110,32 +1214,260 @@ def flip_horizontal(board, constraint):
     flip_diagonal(board, constraint)
     rotate_clockwise(board, constraint)
 
-def swap_letter(board, constraint, perm):
+def swap_letters(board, constraint, perm):
     ''' Swap letters in the given permutations.
         Assuming perm is a valid rearrangement, partial or complete,
             of choices.
         '''
     dim = get_dim(board)
+
     for i in range(dim):
         for j in range(dim):
             if board[i][j] in perm:
                 board[i][j] = perm.index(board[i][j])
-    perm = perm[1:] + perm[0]
+        for k in range(4):
+            if constraint[k][i] in perm:
+                constraint[k][i] = perm.index(constraint[k][i])
+
+    sorted_perm = sorted(perm)
+
     for i in range(dim):
         for j in range(dim):
             if type(board[i][j]) is type(0):
-                board[i][j] = perm[board[i][j]]
+                board[i][j] = sorted_perm[board[i][j]]
+        for k in range(4):
+            if type(constraint[k][i]) is type(0):
+                constraint[k][i] = sorted_perm[constraint[k][i]]
+
+# BOARD FAMILY CONVERSION SECTION
+#__________
+
+def constraint_score(constraint, side = -1, inverted = False):
+    ''' Comparing edges based on nondiversity and clue counts. '''
+    if side != -1:
+        constraint = constraint[side]
+
+    dim = len(constraint)
+    no_of_empty = constraint.count('')
+    dim - no_of_empty
+
+    if inverted:
+        constraint = constraint[::-1]
+    unique_score = 0
+    seen = ['']
+    for c in constraint:
+        if c not in seen:
+            seen.append(c)
+
+    for i in range(dim):
+        c = constraint[i]
+        power = dim - 1 - i
+        seen_index = seen.index(c)
+
+        if seen_index == 0:
+            seen_index = BIG_NUMBER
+        unique_score += (BIG_NUMBER - seen_index) * (10 ** power)
+    return ((dim - no_of_empty) * (10 ** (BIG_NUMBER + 1)) + unique_score)
+
+def calculate_corner(constraint, corner):
+    # combining the 2 scores from the sides.
+    # corners are numbered as follows:
+    #   3   0
+    #   2   1
+    if corner == 0:
+        return constraint_score(constraint, TOP, True) * \
+            constraint_score(constraint, RIGHT)
+    if corner == 1:
+        return constraint_score(constraint, RIGHT, True) * \
+            constraint_score(constraint, BOTTOM, True)
+    if corner == 2:
+        return constraint_score(constraint, LEFT, True) * \
+            constraint_score(constraint, BOTTOM)
+    if corner == 3:
+        return constraint_score(constraint, TOP) * \
+            constraint_score(constraint, LEFT)
+
+def calculate_corner_stat(constraint):
+    ''' Return corner_list of scores, max, and, how many ties at max. '''
+    corner_0 = calculate_corner(constraint, 0)
+    corner_1 = calculate_corner(constraint, 1)
+    corner_2 = calculate_corner(constraint, 2)
+    corner_3 = calculate_corner(constraint, 3)
+    corner_list = [corner_0, corner_1, corner_2, corner_3]
+    corner_max = max(corner_list)
+    max_count = corner_list.count(corner_max)
+    return corner_list, corner_max, max_count
+
+def convert_to_family_generator(board, constraint, choices):
+    ''' Return a new permutation of top-bottom-left-right
+        that is the family's generator.
+        '''
+    corner_list, corner_max, max_count = calculate_corner_stat(constraint)
+    if max_count == 1:
+        idx = corner_list.index(corner_max)
+        if idx == 0:
+            rotate_counter_clockwise(board, constraint)
+        elif idx == 1:
+            rotate_clockwise(board, constraint)
+            rotate_clockwise(board, constraint)
+        elif idx == 2:
+            rotate_clockwise(board, constraint)
+        if constraint_score(constraint, TOP) < \
+                constraint_score(constraint, LEFT):
+            flip_diagonal(board, constraint)
+    elif max_count == 2:
+        # opposite sides
+        if corner_list[0] == corner_max and corner_list[2] == corner_max:
+            rotate_counter_clockwise(board, constraint)
+            convert_to_family_generator(board, constraint, choices)
+            return
+        elif corner_list[1] == corner_max and corner_list[3] == corner_max:
+            pass
+        # adjacent sides
+        elif corner_list[0] == corner_max:
+            if corner_list[3] == corner_max:
+                rotate_counter_clockwise(board, constraint)
+                convert_to_family_generator(board, constraint, choices)
+                return
+            elif corner_list[1] == corner_max:
+                rotate_clockwise(board, constraint)
+                rotate_clockwise(board, constraint)
+                convert_to_family_generator(board, constraint, choices)
+                return
+        elif corner_list[2] == corner_max:
+            if corner_list[1] == corner_max:
+                rotate_clockwise(board, constraint)
+                convert_to_family_generator(board, constraint, choices)
+                return
+            else:
+                if constraint_score(constraint, TOP) < \
+                        constraint_score(constraint, BOTTOM) or \
+                        (constraint_score(constraint, TOP) == \
+                        constraint_score(constraint, BOTTOM) and \
+                        constraint_score(constraint, LEFT) < \
+                        constraint_score(constraint, LEFT, True)):
+                    flip_vertical(board, constraint)
+    elif max_count == 3:
+        # put the lowest corner on bottom right
+        if corner_list[0] < corner_max:
+            rotate_clockwise(board, constraint)
+        elif corner_list[2] < corner_max:
+            rotate_counter_clockwise(board, constraint)
+        elif corner_list[3] < corner_max:
+            rotate_clockwise(board, constraint)
+            rotate_clockwise(board, constraint)
+    else:
+        # order of preference: top, left, bottom, right
+        # probably won't happen, or if it would it'd be perfectly symmetrical?
+        log('CHECK IF BOARD IS PERFECTLY SYMMETRICAL', DEV)
+        pass
+
+    # log(stringify(board, constraint), DEV)
+
+    # after transforming is swapping letters
+    swap_letters_after_transformations(board, constraint, choices)
+
+def compare_left_and_right(board, constraint):
+    ''' Compare if a horizontal flip is necessary.
+        Return whether changed.
+        '''
+    val1_left = count_element(constraint[2])
+    val1_right = count_element(constraint[3])
+    val2_left = count_unique(constraint[2])
+    val2_right = count_unique(constraint[3])
+    if val1_left < val1_right or \
+            (val1_left == val1_right and val2_left < val2_right):
+        flip_horizontal(board, constraint)
+        return True
+    return False
+
+def compare_top_and_bottom(board, constraint):
+    ''' Compare if a vertical flip is necessary.
+        Return whether changed.
+        '''
+    val1_top = count_element(constraint[0])
+    val1_bot = count_element(constraint[1])
+    val2_top = count_unique(constraint[0])
+    val2_bot = count_unique(constraint[1])
+    if val1_top < val1_bot or \
+            (val1_top == val1_bot and val2_top < val2_bot):
+        flip_vertical(board, constraint)
+        return True
+    return False
+
+def compare_main_opposite_corners(board, constraint):
+    val2_top = count_unique(constraint[0])
+    val2_bot = count_unique(constraint[1][::-1])
+    val2_left = count_unique(constraint[2])
+    val2_right = count_unique(constraint[3][::-1])
+    val2_list = [val2_top, val2_bot, val2_left, val2_right]
+    val2_max = max(val2_list)
+    max2_count = val2_list.count(val2_max)
+    if max2_count == 1:
+        if val2_bot == val2_max:
+            rotate_clockwise(board, constraint)
+            rotate_clockwise(board, constraint)
+        elif val2_left == val2_max:
+            flip_diagonal(board, constraint)
+        elif val2_right == val2_max:
+            flip_anti_diagonal(board, constraint)
+    elif max2_count == 2:
+        # diagonally symmetric
+        if val2_left == val2_max:
+            flip_diagonal(board, constraint)
+    # 3 cannot happen, 4 doesn't matter (perfect symmetry)
+
+def compare_3_edges_of_left_corners(board, constraint):
+    val2_top = count_unique(constraint[0])
+    val2_bot = count_unique(constraint[1])
+    val2_left_1 = count_unique(constraint[2])
+    val2_left_2 = count_unique(constraint[2][::-1])
+    if val2_top < val2_bot or (val2_top == val2_bot and
+            val2_left_1 < val2_left_2):
+        flip_vertical(board, constraint)
+
+def swap_letters_after_transformations(board, constraint, choices):
+    list_of_chars = []
+    for c in constraint[0]:
+        if c not in list_of_chars:
+            list_of_chars.append(c)
+    for c in constraint[2]:
+        if c not in list_of_chars:
+            list_of_chars.append(c)
+    for c in constraint[1]:
+        if c not in list_of_chars:
+            list_of_chars.append(c)
+    for c in constraint[3]:
+        if c not in list_of_chars:
+            list_of_chars.append(c)
+    try:
+        list_of_chars.remove('')
+    except ValueError:
+        # god bless if there are maximum no of constraints
+        pass
+    for c in choices:
+        if c != 'X' and c not in list_of_chars:
+            list_of_chars.append(c)
+    swap_letters(board, constraint, list_of_chars)
+
+# CONSTRAINT GENERATION SECTION
+#__________
+
+''' First, sort 1 and 2.
+    Second, no more than dim - len(choices) + 1 same constraint.
+    '''
+
 
 # EXECUTION SECTION
-#___________
+#__________
 
 if __name__ == '__main__':
-    board, constraint, choices, diag = janko_parser(janko_get_text(46))
-    # board, constraint, choices, diag = input_gui()
+    no = int(sys.argv[1])
+    board, constraint, choices, diag = janko_parser(janko_get_text(no))
+    print stringify(board, constraint)
+    convert_to_family_generator(board, constraint, choices)
+    if constraint_score(constraint, TOP) < constraint_score(constraint, BOTTOM):
+        print 'TOP < BOTTOM'
     solution_list, trials = solve(board, constraint, choices, diag)
-    print 'number of trials:', trials
-    print 'number of slns  :', len(solution_list)
-    for i in solution_list:
-        print 
-        print stringify(i, constraint, True)
-
+    for solution in solution_list:
+        print stringify(solution, constraint)
