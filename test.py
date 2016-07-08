@@ -7,6 +7,9 @@
 from utils_nextgen import *
 import random
 
+from distutils.core import setup
+import py2exe
+
 ''' Test file.
 		put stuff to run here
 	'''
@@ -63,4 +66,11 @@ def test_generate(dim, choices, diag, clue_count, freq = None):
 	print '\nfound one!\n'
 	print stringify(board, constraint)
 
-test_generate(5, 'abc', False, 6)
+# test_generate(5, 'abc', False, 6)
+
+setup(options = {
+        "py2exe": {
+            "dll_excludes": ["MSVCP90.dll"]
+        }
+    },
+    console=['utils_gui.py'])

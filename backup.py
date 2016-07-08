@@ -1,5 +1,14 @@
 # SCRATCH PLACE - FOR DELETED CODE WHICH MIGHT BE USEFUL LATER
 
+def bak_compare_3_edges_of_left_corners(board, constraint):
+    val2_top = count_unique(constraint[0])
+    val2_bot = count_unique(constraint[1])
+    val2_left_1 = count_unique(constraint[2])
+    val2_left_2 = count_unique(constraint[2][::-1])
+    if val2_top < val2_bot or (val2_top == val2_bot and
+            val2_left_1 < val2_left_2):
+        flip_vertical(board, constraint)
+
 def bak_convert_to_family_generator(board, constraint, choices):
     ''' Return a new permutation of top-bottom-left-right
         that is the family's generator.
@@ -155,3 +164,25 @@ def bak_compare_top_and_bottom(board, constraint):
         flip_vertical(board, constraint)
         return True
     return False
+
+def bak_compare_main_opposite_corners(board, constraint):
+    val2_top = count_unique(constraint[0])
+    val2_bot = count_unique(constraint[1][::-1])
+    val2_left = count_unique(constraint[2])
+    val2_right = count_unique(constraint[3][::-1])
+    val2_list = [val2_top, val2_bot, val2_left, val2_right]
+    val2_max = max(val2_list)
+    max2_count = val2_list.count(val2_max)
+    if max2_count == 1:
+        if val2_bot == val2_max:
+            rotate_clockwise(board, constraint)
+            rotate_clockwise(board, constraint)
+        elif val2_left == val2_max:
+            flip_diagonal(board, constraint)
+        elif val2_right == val2_max:
+            flip_anti_diagonal(board, constraint)
+    elif max2_count == 2:
+        # diagonally symmetric
+        if val2_left == val2_max:
+            flip_diagonal(board, constraint)
+    # 3 cannot happen, 4 doesn't matter (perfect symmetry)

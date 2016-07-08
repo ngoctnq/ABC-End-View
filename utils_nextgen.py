@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
 from copy import deepcopy
 import sys
-import urllib2
+# import urllib2
 import random
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 ''' A well documented digital conversion of ABC Endview puzzle.
     Ngoc Tran - 2016 || underlandian.com
 
@@ -1120,7 +1120,7 @@ def log(msg, priority = LOG):
         pass
     elif priority == DEV:
         print msg
-    elif priority == SOLVER:
+    elif priority == GUI:
         # print msg
         pass
     else:
@@ -1479,37 +1479,6 @@ def convert_to_family_generator(board, constraint, choices,
         swap_letters_after_transformations(board, constraint, choices)
     return functions_used, swap_order
 
-def compare_main_opposite_corners(board, constraint):
-    val2_top = count_unique(constraint[0])
-    val2_bot = count_unique(constraint[1][::-1])
-    val2_left = count_unique(constraint[2])
-    val2_right = count_unique(constraint[3][::-1])
-    val2_list = [val2_top, val2_bot, val2_left, val2_right]
-    val2_max = max(val2_list)
-    max2_count = val2_list.count(val2_max)
-    if max2_count == 1:
-        if val2_bot == val2_max:
-            rotate_clockwise(board, constraint)
-            rotate_clockwise(board, constraint)
-        elif val2_left == val2_max:
-            flip_diagonal(board, constraint)
-        elif val2_right == val2_max:
-            flip_anti_diagonal(board, constraint)
-    elif max2_count == 2:
-        # diagonally symmetric
-        if val2_left == val2_max:
-            flip_diagonal(board, constraint)
-    # 3 cannot happen, 4 doesn't matter (perfect symmetry)
-
-def compare_3_edges_of_left_corners(board, constraint):
-    val2_top = count_unique(constraint[0])
-    val2_bot = count_unique(constraint[1])
-    val2_left_1 = count_unique(constraint[2])
-    val2_left_2 = count_unique(constraint[2][::-1])
-    if val2_top < val2_bot or (val2_top == val2_bot and
-            val2_left_1 < val2_left_2):
-        flip_vertical(board, constraint)
-
 def swap_letters_after_transformations(board, constraint, choices):
     list_of_chars = []
     for c in constraint[0]:
@@ -1551,7 +1520,6 @@ def execute_changes(board, constraint, functions_used, swap_order, reverse = Fal
         for function in functions_used:
             function(board, constraint)
             swap_letters(board, constraint, swap_order)
-
 
 def invert_transformation(func):
     if func is rotate_clockwise:
