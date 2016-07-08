@@ -25,7 +25,7 @@ Technically, you can comment out `BeautifulSoup4` and the fetch methods as it is
 ## How to run
 There are 4 ways to run this - 2 for each file:
 - Run `python utils_nextgen.py <problem_number>`.
-- Import `utils_nextgen.py` and run solve_main().
+- Import `utils_nextgen.py` and `run solve_main()`.
 - Run the precompiled `utils_gui.exe`.
 - Run `python utils_gui.py`.
 
