@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
 from copy import deepcopy
 import sys
-# import urllib2
+import urllib2
 import random
-# from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup
 ''' A well documented digital conversion of ABC Endview puzzle.
     Ngoc Tran - 2016 || underlandian.com
 
@@ -1539,7 +1539,11 @@ def invert_transformation(func):
     Second, no more than dim - len(choices) + 1 same constraint.
     '''
 
+# TODO: IMPLEMENT NULL CLUE COUNT
 def test_generate(dim, choices, diag = False, clue_count = 0, freq = None):
+    ''' Generate a board with clue_count number of clue.
+        Random until terminate.
+        '''
     satisfied = False
     choices = choices.upper()
     len_choices = len(choices)
@@ -1582,14 +1586,14 @@ if __name__ == '__main__':
     board, constraint, choices, diag = janko_parser(janko_get_text(no))
     print stringify(board, constraint)
     # TODO: REMEMBER TO CLONE
-    functions_used, swap_order = \
-        convert_to_family_generator(board, constraint, choices)
+    # functions_used, swap_order = \
+    #     convert_to_family_generator(board, constraint, choices)
     # print stringify(board, constraint)
     # execute_changes(board, constraint, functions_used, swap_order, True)
     # print stringify(board, constraint)
-    if constraint_score(constraint, TOP, choices) < \
-            constraint_score(constraint, BOTTOM, choices):
-        print 'TOP < BOTTOM'
+    # if constraint_score(constraint, TOP, choices) < \
+    #         constraint_score(constraint, BOTTOM, choices):
+    #     print 'TOP < BOTTOM'
     solution_list, trials = solve(board, constraint, choices, diag)
     for solution in solution_list:
         print stringify(solution, constraint)
