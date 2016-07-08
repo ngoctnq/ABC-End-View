@@ -1,0 +1,26 @@
+begin
+author Otto Janko
+solver Jrgen Helbig
+source http://www.janko.at/Raetsel/AbcEndView/
+info 9000-27-476764-0-694
+unit 30
+size 5
+depth 4
+clabels
+- - d - -
+- - a - -
+rlabels
+- - - c -
+d - b - d
+solution
+a b - c d
+- a d b c
+d - c a b
+c d b - a
+b c a d -
+moves
+Z2;dc,4;df,1;db,0;fb,4;ef,4;ff,0;fd,2;fc,3;fe,1;de,2;
+dd,3;eb,-,,E;cb,-,,E;bb,-,,E;cf,-,,E;bf,-,,E;ee,0;be,3;
+ce,4;cf,3;bf,2;ed,-,,E;ec,-,,E;ed,1;eb,3;ec,2;bd,4;
+cd,0;bc,0;bb,1;cb,2;cc,1;
+end

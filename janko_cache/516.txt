@@ -1,0 +1,24 @@
+begin
+author Otto Janko
+source http://www.janko.at/Raetsel/
+info 9000-99-832622-0-290
+unit 30
+size 5
+depth 4
+clabels
+a b - - a
+- - b - -
+rlabels
+- - - a c
+- a - d -
+solution
+a b c d -
+b c d - a
+d - a b c
+- a b c d
+c d - a b
+moves
+Z2;cb,2;be,0;bb,1;fb,0;fc,1;bf,3;ce,1;fe,4;ff,2;fd,3;
+df,0;de,2;ee,3;db,3;eb,4;dc,4;dd,1;ef,1;cf,4;cc,3;cd,0;
+ed,2;bd,4;bc,2;
+end

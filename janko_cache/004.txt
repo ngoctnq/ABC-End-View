@@ -1,0 +1,23 @@
+begin
+author Oleg Andrushko
+solver Rainer
+source http://www.puzzleprograms.narod.ru/
+info 4x4-01
+unit 30
+size 4
+depth 3
+clabels
+c - - -
+- - - -
+rlabels
+- - - c
+- b - -
+solution
+c b a -
+a - c b
+b a - c
+- c b a
+moves
+Z2;be,0;ce,3;bb,3;bc,1;bd,2;cb,2;cd,1;dc,3;ec,2;ed,3;
+de,2;ee,1;db,1;
+end

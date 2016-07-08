@@ -1,0 +1,30 @@
+begin
+author Otto Janko
+solver Emma
+source http://www.janko.at/Raetsel/
+info 1547-74-910440783-0-113
+unit 30
+size 7
+depth 6
+options diagonals
+clabels
+- - - - - - b
+d a c e b b f
+rlabels
+- - a - c f -
+b a - a - e f
+solution
+e f a - d c b
+c d b f e a -
+a b - d f e c
+b e f c - d a
+- c e b a f d
+f - d a c b e
+d a c e b - f
+moves
+Z1;hb,2;hg,5;hh,6;bh,4;ch,1;dh,3;eh,5;hf,4;hd,3;bd,1;
+ff,1;gc,1;he,1;hc,0;ee,3;gb,3;cf,3;bf,0;bg,6;cg,0;bc,3;
+be,2;bb,5;dc,2;cd,2;ef,2;gg,2;fh,2;gh,0;fg,3;cc,4;dd,0;
+ec,6;fc,5;df,5;fd,6;ed,4;gd,5;eg,1;eb,0;dg,4;db,1;cb,6;
+fb,4;ce,5;de,6;fe,0;ge,4;gf,6;
+end

@@ -1,0 +1,21 @@
+begin
+author Oleg Andrushko
+solver Rainer
+source http://www.puzzleprograms.narod.ru/
+info 3x3-03
+unit 30
+size 3
+depth 2
+clabels
+- - -
+b - -
+rlabels
+- - a
+- - -
+solution
+a b -
+b - a
+- a b
+moves
+Z2;bd,0;cd,1;dd,2;bc,2;bb,1;dc,1;cb,2;
+end
