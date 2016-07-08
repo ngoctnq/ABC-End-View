@@ -1,0 +1,23 @@
+begin
+author Otto Janko
+source http://www.janko.at/Raetsel/
+info 1547-65-315420718-0-980
+unit 30
+size 7
+depth 6
+options diagonals
+clabels
+e f f b a - c
+- - - - b b -
+rlabels
+- b d - f d -
+c - - b e - f
+solution
+e f - b a d c
+b c f a - e d
+d b a e f c -
+c a d - e f b
+f - b c d a e
+- d e f c b a
+a e c d b - f
+end

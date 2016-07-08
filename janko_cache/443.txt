@@ -1,0 +1,25 @@
+begin
+author Luke Pebody
+solver Rainer
+source http://blog.puzzlearena.com/
+info 054
+unit 30
+size 5
+depth 3
+clabels
+b - - a -
+- - c b -
+rlabels
+- - a - a
+c - - c -
+solution
+b - - a c
+c - b - a
+a c - - b
+- b a c -
+- a c b -
+moves
+Z2;bc,3;bb,2;fb,3;fe,0;fc,1;ef,2;fd,2;ff,0;ee,3;ed,0;
+eb,1;ec,0;db,0;cb,0;df,3;de,1;dc,2;dd,0;bd,1;cd,3;be,0;
+bf,0;cf,1;ce,2;
+end

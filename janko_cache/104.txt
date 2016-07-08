@@ -1,0 +1,23 @@
+begin
+author Mikhail Khotiner
+source http://tvpark.kiev.ua/
+info 200410
+unit 30
+size 8
+depth 6
+clabels
+- e - a e a - c
+- d a b f - c -
+rlabels
+f d a - d e b e
+- f e d c a a -
+solution
+f e b a - - d c
+- - d c e a b f
+a c - d b f - e
+c a - f - b e d
+d b f e a c - -
+- - e b c d f a
+b f c - d e a -
+e d a - f - c b
+end

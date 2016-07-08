@@ -1,0 +1,25 @@
+begin
+author Luke Pebody
+solver Rainer
+source http://blog.puzzlearena.com/
+info 049
+unit 30
+size 5
+depth 3
+clabels
+- - c - -
+b a a - -
+rlabels
+c b - b -
+b - - a -
+solution
+c - - a b
+- b c - a
+a - b c -
+b c a - -
+- a - b c
+moves
+Z2;bd,1;bc,0;bb,3;db,0;cc,2;cb,0;fb,2;eb,1;fc,1;fe,0;
+ee,0;de,1;df,0;cf,1;be,2;ce,3;bf,0;ef,2;ff,3;fd,0;cd,0;
+dd,2;dc,3;ed,3;
+end

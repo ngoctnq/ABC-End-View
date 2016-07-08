@@ -1,0 +1,22 @@
+begin
+author Otto Janko
+source http://www.janko.at/Raetsel/AbcEndView/
+info 9000-78-261229-0-213
+unit 30
+size 7
+depth 6
+clabels
+d e f c e b a
+f d a e b d c
+rlabels
+d b a a e c f
+a f d e b a c
+solution
+d e f c - b a
+b c d a e - f
+- a b f c e d
+a b c - d f e
+e f - d a c b
+c d e b f a -
+f - a e b d c
+end

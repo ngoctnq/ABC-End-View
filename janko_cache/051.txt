@@ -1,0 +1,22 @@
+begin
+author Oleg Andrushko
+source http://www.puzzleprograms.narod.ru/
+info 7x7-08
+unit 30
+size 7
+depth 3
+clabels
+b c c b - b -
+- - - - - - a
+rlabels
+- c - b c - c
+- - a a a - -
+solution
+- - - b a - c
+- - c a - - b
+- - - - c b a
+b c a - - - -
+- - - c b a -
+a b - - - c -
+c a b - - - -
+end

@@ -1,0 +1,19 @@
+begin
+author Otto Janko
+source http://www.janko.at/Raetsel/
+info 9000-19-958498-0-766
+unit 30
+size 4
+depth 4
+clabels
+- - - -
+b - a -
+rlabels
+a - - -
+- d - -
+solution
+a c d b
+c a b d
+d b c a
+b d a c
+end
