@@ -2,6 +2,7 @@
 from copy import deepcopy
 import sys
 import urllib2
+import random
 from bs4 import BeautifulSoup
 ''' A well documented digital conversion of ABC Endview puzzle.
     Ngoc Tran - 2016 || underlandian.com
@@ -19,9 +20,8 @@ BOTTOM = 1
 LEFT = 2
 RIGHT = 3
 LOG = -1
-SOLVER = 9
+GUI = 9
 DEV = 99
-BIG_NUMBER = 9
 
 # INITIALIZATION SECTION
 #___________
@@ -200,19 +200,26 @@ def implied_x_count(constraint, choices, side):
         raise ValueError('not a valid side of constraint')
     return implied_x, implied_x_letters
 
-def solve(board, constraint, choices, diag = False, short_circuit = False):
+def solve(board, constraint, choices, diag = False, short_circuit = False,
+    no_trials = False):
     ''' Master ABC Endview solver.
         Solve the board until unfilled is empty.
         If short_circuit flag is set to True, then return whether the problem
             has more than 1 solution.
+        If no_trials flag is set to True, then return the "solution" achieved
+            without using trial-and-error.
         '''
     dim = get_dim(board)
+    board = deepcopy(board)
     
     # if we are really (un)lucky, then it won't even pass the valet round
     try:
         initial_reduction(board, constraint, choices)
     except ValueError:
-        return [], 0
+        if short_circuit:
+            return 0
+        else:
+            return [], 0
 
     unfilled = []
     for i in range(dim):
@@ -223,15 +230,18 @@ def solve(board, constraint, choices, diag = False, short_circuit = False):
     # log(stringify(board, constraint, True))
 
     trials = solve_core(board, constraint, choices, diag,
-        unfilled, solution_list, short_circuit)
+        unfilled, solution_list, short_circuit, no_trials)
 
     if short_circuit:
-        return len(solution_list) != 1
+        return len(solution_list)
     else:
-        return solution_list, trials
+        if no_trials:
+            return solution_list[0]
+        else:
+            return solution_list, trials
 
 def solve_core(board, constraint, choices, diag, unfilled, solution_list,
-        short_circuit = False):
+    short_circuit = False, no_trials = False):
     ''' Main solving method, with trial-and-error.
         If short_circuit flag is set to True, then when the problem is
             determined to have more than 1 solution, it terminates instantly.
@@ -251,8 +261,12 @@ def solve_core(board, constraint, choices, diag, unfilled, solution_list,
     # if something is changed, tail call to keep trying solving
     if changed:
         return solve_core(board, constraint, choices, diag,
-            unfilled, solution_list)
+            unfilled, solution_list, short_circuit, no_trials)
     else:
+        if no_trials:
+            solution_list.append(board)
+            return 0
+
         # if everything is filled
         if len(unfilled) == 0:
             solution_list.append(board)
@@ -271,9 +285,9 @@ def solve_core(board, constraint, choices, diag, unfilled, solution_list,
 
         return 1 + \
             solve_core(new_board, constraint, choices, diag,
-                new_unfilled, solution_list) + \
+                new_unfilled, solution_list, short_circuit) + \
             solve_core(board, constraint, choices, diag,
-                unfilled, solution_list)
+                unfilled, solution_list, short_circuit)
 
 def fewest_choices_cell(board, unfilled):
     ''' Find the cell with the fewest choice. '''
@@ -692,6 +706,8 @@ def update_after_fill(board, constraint, choices, diag, coord):
 
 def not_cap_chars(word):
     ''' Check if all are capital and sequential from A. '''
+    if len(word) == 0:
+        raise ValueError('no choices entered')
     for i in range(len(word)):
         if ord(word[i]) != ord('A')+i:
             return True
@@ -1115,7 +1131,7 @@ def solve_main(no = -1):
     ''' Pretty printing the output of a solver.
         -1 triggers the input prompt, else get redirected to janko getter.
         '''
-    log('\nABC Endview Solver', SOLVER)
+    log('\nABC Endview Solver', GUI)
     if no == -1:
         board, constraint, choices, diag = input_gui()
     else:
@@ -1124,14 +1140,14 @@ def solve_main(no = -1):
     # log(stringify(board, constraint, True), DEV)
 
     solution_list, trials = solve(board, constraint, choices, diag)
-    log('__________\n', SOLVER)
-    log('number of trials: ' + str(trials), SOLVER)
-    log('number of slns  : ' + str(len(solution_list)), SOLVER)
-    log('__________\n', SOLVER)
+    log('__________\n', GUI)
+    log('number of trials: ' + str(trials), GUI)
+    log('number of slns  : ' + str(len(solution_list)), GUI)
+    log('__________\n', GUI)
     for i in range(len(solution_list)):
-        log('Solution #' + str(i + 1)+'\n', SOLVER)
-        log(stringify(solution_list[i], constraint), SOLVER)
-        log('\n', SOLVER)
+        log('Solution #' + str(i + 1)+'\n', GUI)
+        log(stringify(solution_list[i], constraint), GUI)
+        log('\n', GUI)
 
     # if True:
     # if trials > 0:
@@ -1248,11 +1264,12 @@ def swap_letters(board, constraint, perm):
 # BOARD FAMILY CONVERSION SECTION
 #__________
 
-def constraint_score(constraint, side = -1, inverted = False):
+def constraint_score(constraint, side, choices, inverted = False):
     ''' Comparing edges based on nondiversity and clue counts. '''
-    if side != -1:
-        constraint = constraint[side]
-
+    max_choice = len(choices)
+    if choices[-1] == 'X':
+        max_choice -= 1
+    constraint = constraint[side]
     dim = len(constraint)
     no_of_empty = constraint.count('')
     dim - no_of_empty
@@ -1271,101 +1288,181 @@ def constraint_score(constraint, side = -1, inverted = False):
         seen_index = seen.index(c)
 
         if seen_index == 0:
-            seen_index = BIG_NUMBER
-        unique_score += (BIG_NUMBER - seen_index) * (10 ** power)
-    score = ((dim - no_of_empty) * (10 ** (BIG_NUMBER + 1)) + unique_score)
+            seen_index = max_choice
+        unique_score += (max_choice - seen_index) * (10 ** power)
+    score = ((dim - no_of_empty) * (10 ** (max_choice + 1)) + unique_score)
     if score > 0:
         return score
     else:
         return 1
 
-def calculate_corner(constraint, corner):
+def calculate_corner(constraint, corner, choices):
     # combining the 2 scores from the sides.
     # corners are numbered as follows:
     #   3   0
     #   2   1
     if corner == 0:
-        return constraint_score(constraint, TOP, True) * \
-            constraint_score(constraint, RIGHT)
+        return constraint_score(constraint, TOP, choices, True) * \
+            constraint_score(constraint, RIGHT, choices)
     if corner == 1:
-        return constraint_score(constraint, RIGHT, True) * \
-            constraint_score(constraint, BOTTOM, True)
+        return constraint_score(constraint, RIGHT, choices, True) * \
+            constraint_score(constraint, BOTTOM, choices, True)
     if corner == 2:
-        return constraint_score(constraint, LEFT, True) * \
-            constraint_score(constraint, BOTTOM)
+        return constraint_score(constraint, LEFT, choices, True) * \
+            constraint_score(constraint, BOTTOM, choices)
     if corner == 3:
-        return constraint_score(constraint, TOP) * \
-            constraint_score(constraint, LEFT)
+        return constraint_score(constraint, TOP, choices) * \
+            constraint_score(constraint, LEFT, choices)
 
-def calculate_corner_stat(constraint):
+def calculate_corner_stat(constraint, choices):
     ''' Return corner_list of scores, max, and, how many ties at max. '''
-    corner_0 = calculate_corner(constraint, 0)
-    corner_1 = calculate_corner(constraint, 1)
-    corner_2 = calculate_corner(constraint, 2)
-    corner_3 = calculate_corner(constraint, 3)
+    corner_0 = calculate_corner(constraint, 0, choices)
+    corner_1 = calculate_corner(constraint, 1, choices)
+    corner_2 = calculate_corner(constraint, 2, choices)
+    corner_3 = calculate_corner(constraint, 3, choices)
     corner_list = [corner_0, corner_1, corner_2, corner_3]
     corner_max = max(corner_list)
     max_count = corner_list.count(corner_max)
     return corner_list, corner_max, max_count
 
-def convert_to_family_generator(board, constraint, choices):
-    ''' Return a new permutation of top-bottom-left-right
-        that is the family's generator.
+def convert_to_family_generator(board, constraint, choices,
+    functions_used = []):
+    ''' Change the whole board and constraint with basic transformations
+            and letter switches into a new one that is the family's generator.
+        Return the list of functions used in order.
         '''
-    corner_list, corner_max, max_count = calculate_corner_stat(constraint)
+    corner_list, corner_max, max_count = \
+        calculate_corner_stat(constraint, choices)
     if max_count == 1:
         idx = corner_list.index(corner_max)
         if idx == 0:
             rotate_counter_clockwise(board, constraint)
+            functions_used.append(rotate_counter_clockwise)
         elif idx == 1:
             rotate_clockwise(board, constraint)
             rotate_clockwise(board, constraint)
+            functions_used.append(rotate_clockwise)
+            functions_used.append(rotate_clockwise)
         elif idx == 2:
             rotate_clockwise(board, constraint)
-        if constraint_score(constraint, TOP) < \
-                constraint_score(constraint, LEFT):
+            functions_used.append(rotate_clockwise)
+        if constraint_score(constraint, TOP, choices) < \
+                constraint_score(constraint, LEFT, choices):
             flip_diagonal(board, constraint)
+            functions_used.append(flip_diagonal)
     elif max_count == 2:
         # opposite sides
         if corner_list[0] == corner_max and corner_list[2] == corner_max:
             rotate_counter_clockwise(board, constraint)
-            convert_to_family_generator(board, constraint, choices)
+            functions_used.append(rotate_counter_clockwise)
+            convert_to_family_generator(board, constraint, choices,
+                functions_used)
             return
         elif corner_list[1] == corner_max and corner_list[3] == corner_max:
-            pass
+            score_top = constraint_score(constraint, TOP, choices)
+            score_bottom = \
+                constraint_score(constraint, BOTTOM, choices, True)
+            score_left = constraint_score(constraint, LEFT, choices)
+            score_right = \
+                constraint_score(constraint, RIGHT, choices, True)
+            score_list = [score_top, score_bottom, score_left, score_right]
+            score_max = max(score_list)
+            if score_list.count(score_max) == 1:
+                if score_list[1] == score_max:
+                    rotate_clockwise(board, constraint)
+                    rotate_clockwise(board, constraint)
+                    functions_used.append(rotate_clockwise)
+                    functions_used.append(rotate_clockwise)
+                elif score_list[2] == score_max:
+                    flip_diagonal(board, constraint)
+                    functions_used.append(flip_diagonal)
+                elif score_list[3] == score_max:
+                    flip_anti_diagonal(board, constraint)
+                    functions_used.append(flip_anti_diagonal)
+            elif score_list.count(score_max) == 2:
+                # same corner
+                if score_list[1] == score_max and score_list[3] == score_max:
+                    # should never happen based on math
+                    raise ValueError\
+                        ('cannot have same score sides on max corner')
+                    rotate_clockwise(board, constraint)
+                    rotate_clockwise(board, constraint)
+                    functions_used.append(rotate_clockwise)
+                    functions_used.append(rotate_clockwise)
+                    convert_to_family_generator(board, constraint, choices,
+                        functions_used)
+                    return
+                elif score_list[0] == score_max and score_list[2] == score_max:
+                    # should never happen
+                    raise ValueError\
+                        ('cannot have same score sides on max corner')
+                # opposite corner
+                elif score_list[2] == score_max and score_list[3] == score_max:
+                    flip_anti_diagonal(board, constraint)
+                    functions_used.append(flip_anti_diagonal)
+                    convert_to_family_generator(board, constraint, choices,
+                        functions_used)
+                    return
+                elif score_list[0] == score_max and score_list[1] == score_max:
+                    if score_list[2] < score_list[3]:
+                        rotate_clockwise(board, constraint)
+                        rotate_clockwise(board, constraint)
+                        functions_used.append(rotate_clockwise)
+                        functions_used.append(rotate_clockwise)
+                # connecting other corner                    
+                elif score_list[0] == score_max and score_list[3] == score_max:
+                    # symmetric
+                    pass
+                elif score_list[1] == score_max and score_list[2] == score_max:
+                    flip_diagonal(board, constraint)
+                    functions_used.append(flip_diagonal)
+            else:
+                raise ValueError('max count = 2 with >2 equal sides?')
         # adjacent sides
         elif corner_list[0] == corner_max:
             if corner_list[3] == corner_max:
                 rotate_counter_clockwise(board, constraint)
-                convert_to_family_generator(board, constraint, choices)
+                functions_used.append(rotate_counter_clockwise)
+                convert_to_family_generator(board, constraint, choices,
+                    functions_used)
                 return
             elif corner_list[1] == corner_max:
                 rotate_clockwise(board, constraint)
                 rotate_clockwise(board, constraint)
-                convert_to_family_generator(board, constraint, choices)
+                functions_used.append(rotate_clockwise)
+                functions_used.append(rotate_clockwise)
+                convert_to_family_generator(board, constraint, choices,
+                    functions_used)
                 return
         elif corner_list[2] == corner_max:
             if corner_list[1] == corner_max:
                 rotate_clockwise(board, constraint)
-                convert_to_family_generator(board, constraint, choices)
+                functions_used.append(rotate_clockwise)
+                convert_to_family_generator(board, constraint, choices, 
+                    functions_used)
                 return
             else:
-                if constraint_score(constraint, TOP) < \
-                        constraint_score(constraint, BOTTOM) or \
-                        (constraint_score(constraint, TOP) == \
-                        constraint_score(constraint, BOTTOM) and \
-                        constraint_score(constraint, LEFT) < \
-                        constraint_score(constraint, LEFT, True)):
+                if constraint_score(constraint, TOP, choices) < \
+                        constraint_score(constraint, BOTTOM, choices) or \
+                        (constraint_score(constraint, TOP, choices) == \
+                        constraint_score(constraint, BOTTOM, choices) and \
+                        constraint_score(constraint, LEFT, choices) < \
+                        constraint_score(constraint, LEFT, choices, True)):
                     flip_vertical(board, constraint)
+                    functions_used.append(flip_vertical)
     elif max_count == 3:
         # put the lowest corner on bottom right
         if corner_list[0] < corner_max:
             rotate_clockwise(board, constraint)
+            functions_used.append(rotate_clockwise)
         elif corner_list[2] < corner_max:
             rotate_counter_clockwise(board, constraint)
+            functions_used.append(rotate_counter_clockwise)
         elif corner_list[3] < corner_max:
             rotate_clockwise(board, constraint)
             rotate_clockwise(board, constraint)
+            functions_used.append(rotate_clockwise)
+            functions_used.append(rotate_clockwise)
     else:
         # order of preference: top, left, bottom, right
         # probably won't happen, or if it would it'd be perfectly symmetrical?
@@ -1378,7 +1475,9 @@ def convert_to_family_generator(board, constraint, choices):
     # log(stringify(board, constraint), DEV)
 
     # after transforming is swapping letters
-    swap_letters_after_transformations(board, constraint, choices)
+    swap_order = \
+        swap_letters_after_transformations(board, constraint, choices)
+    return functions_used, swap_order
 
 def compare_main_opposite_corners(board, constraint):
     val2_top = count_unique(constraint[0])
@@ -1434,6 +1533,36 @@ def swap_letters_after_transformations(board, constraint, choices):
         if c != 'X' and c not in list_of_chars:
             list_of_chars.append(c)
     swap_letters(board, constraint, list_of_chars)
+    return list_of_chars
+
+def execute_changes(board, constraint, functions_used, swap_order, reverse = False):
+    ''' Revert all changes made, mostly from convert_to_family_generator. '''
+    if reverse:
+        for function in functions_used:
+            invert_transformation(function)(board, constraint)
+            sorted_swap = sorted(swap_order)
+            new_swap_order = [None] * len(swap_order)
+            for i in range(len(swap_order)):
+                old_char = sorted_swap[i]
+                new_char = swap_order[i]
+                new_swap_order[sorted_swap.index(new_char)] = old_char
+            swap_letters(board, constraint, new_swap_order) 
+    else:
+        for function in functions_used:
+            function(board, constraint)
+            swap_letters(board, constraint, swap_order)
+
+
+def invert_transformation(func):
+    if func is rotate_clockwise:
+        return rotate_counter_clockwise
+    elif func is rotate_counter_clockwise:
+        return rotate_clockwise
+    elif func is flip_horizontal or func is flip_vertical or \
+            func is flip_diagonal or func is flip_anti_diagonal:
+        return func
+    else:
+        return ValueError('not an invertible function')
 
 # CONSTRAINT GENERATION SECTION
 #__________
@@ -1441,6 +1570,40 @@ def swap_letters_after_transformations(board, constraint, choices):
 ''' First, sort 1 and 2.
     Second, no more than dim - len(choices) + 1 same constraint.
     '''
+
+def test_generate(dim, choices, diag = False, clue_count = 0, freq = None):
+    satisfied = False
+    choices = choices.upper()
+    len_choices = len(choices)
+    if dim > len(choices):
+        choices += 'X'
+    if clue_count == 0:
+        clue_count_min = 0
+    while not satisfied:
+        clue_count_2 = clue_count
+        board = generate_empty_board(dim)
+        constraint = generate_empty_constraint(dim)
+        populate_empty_board(board, choices)
+
+        unfilled_clues = []
+        for i in range(4):
+            for j in range(dim):
+                unfilled_clues.append([i,j])
+        if freq is None:
+            while clue_count_2 > 0:
+                c = choices[random.randrange(len_choices)]
+                idx = random.randrange(len(unfilled_clues))
+                c_idx = unfilled_clues[idx]
+                constraint[c_idx[0]][c_idx[1]] = c
+                del unfilled_clues[idx]
+                clue_count_2 -= 1
+        else:
+            raise NotImplementedError()
+        convert_to_family_generator(board, constraint, choices)
+        satisfied = not solve(board, constraint, choices, diag, True)
+        sys.stdout.write('.')
+    log('\nfound one!\n', GUI)
+    log(stringify(board, constraint), GUI)
 
 
 # EXECUTION SECTION
@@ -1450,8 +1613,14 @@ if __name__ == '__main__':
     no = int(sys.argv[1])
     board, constraint, choices, diag = janko_parser(janko_get_text(no))
     print stringify(board, constraint)
-    convert_to_family_generator(board, constraint, choices)
-    if constraint_score(constraint, TOP) < constraint_score(constraint, BOTTOM):
+    # TODO: REMEMBER TO CLONE
+    functions_used, swap_order = \
+        convert_to_family_generator(board, constraint, choices)
+    # print stringify(board, constraint)
+    # execute_changes(board, constraint, functions_used, swap_order, True)
+    # print stringify(board, constraint)
+    if constraint_score(constraint, TOP, choices) < \
+            constraint_score(constraint, BOTTOM, choices):
         print 'TOP < BOTTOM'
     solution_list, trials = solve(board, constraint, choices, diag)
     for solution in solution_list:
