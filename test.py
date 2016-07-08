@@ -1,21 +1,21 @@
 #!/usr/bin/env python2
-# from utils import *
-# from utils_janko import *
+from utils import *
+from utils_janko import *
 # from utils_matrix import *
-# from gentest import *
+from gentest import *
 
-from utils_nextgen import *
+# from utils_nextgen import *
 import random
 
-from distutils.core import setup
-import py2exe
+# from distutils.core import setup
+# import py2exe
 
 ''' Test file.
 		put stuff to run here
 	'''
 
 # matrix_test()
-# print board_generator(3,2,0, test = False)
+print board_generator(4,2,0, test = False)
 # solver_janko(77)
 
 def compare_with_anna():
@@ -66,11 +66,11 @@ def test_generate(dim, choices, diag, clue_count, freq = None):
 	print '\nfound one!\n'
 	print stringify(board, constraint)
 
-# test_generate(5, 'abc', False, 6)
+# test_generate(4, 'ab', False, 6)
 
-setup(options = {
-        "py2exe": {
-            "dll_excludes": ["MSVCP90.dll"]
-        }
-    },
-    console=['utils_gui.py'])
+# setup(options = {
+#         "py2exe": {
+#             "dll_excludes": ["MSVCP90.dll"]
+#         }
+#     },
+#     console=['utils_gui.py'])
