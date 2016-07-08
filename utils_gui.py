@@ -12,12 +12,12 @@ class MainFrame ( wx.Frame ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "ABC Endview Tools", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.Size( WINDOW_SIZE+40,WINDOW_SIZE + 150 ), wx.DefaultSize )
+		self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_APPWORKSPACE ) )
 		
 		self.status_bar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
 		parent_sizer = wx.BoxSizer( wx.VERTICAL )
 
 		self.option_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		self.option_panel.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INACTIVECAPTIONTEXT ) )
 		self.option_panel.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_APPWORKSPACE ) )
 		self.option_panel.SetMaxSize( wx.Size( -1,50 ) )
 		
