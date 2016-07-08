@@ -331,6 +331,8 @@ class InputDialog ( wx.Dialog ):
 				raise ValueError('not valid choices')
 			if self.dim > len(self.choices):
 				self.choices += 'X'
+			if self.dim < len(self.choices):
+				raise ValueError('more choices than cells')
 			self.diag = self.diagonal_toggle.GetValue()
 			self.board = generate_empty_board(self.dim)
 			self.constraint = generate_empty_constraint(self.dim)
