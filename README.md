@@ -8,7 +8,7 @@ Something fun -- or supposed to be.
 ## General description
 - The solver, with commandline prompt is the method `solve_main(int)` in `utils_nextgen.py`. The file requires imports from `BeautifulSoup4`.
 - The `int` parameter is problem number (1-530) from http://www.janko.at/Raetsel/Abc-End-View/index.htm, when input will tell the method to fetch it and solve. Otherwise, it will ask for input via CLI.
-- 
+
 A screenshot of the GUI - with the famous Janko problem number 480:
 
 ![alt text](http://i.imgur.com/GRNVSAG.png "It has 46,670 solutions, so don't bother trying solving.")
