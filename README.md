@@ -18,9 +18,9 @@ A screenshot of the GUI - with the famous Janko problem number 480:
 The GUI is in `utils_gui.py`, which requires imports from wxPython. It is precompiled for Windows 10, 64-bit into the given executable. If it doesn't work, please run it from source.
 
 ## Dependencies
-Technically, you can comment out `BeautifulSoup4` and the fetch methods as it is already cached in the `janko_cache` folder. In contrary, the `wxPython` module is required for GUI.
+Technically, you can comment out `BeautifulSoup4` and the fetch methods as it is already cached in the `janko_cache` folder. The `wxPython` module is required for GUI.
 
-`BeautifulSoup4` can be installed via `pip` for most OSes. `wxPython` has an installer that works fine on Windows, but messes up on El Capitan. Another way to get `wxPython` on Mac that worked for me is installing through Homebrew with `brew install wxpython`. I never tried on Linux, but it should be either the case of standalone, or via a package manager.
+`BeautifulSoup4` can be installed via `pip` for most OSes. `wxPython` has an installer that works fine on Windows, but messes up on El Capitan. Another way to get `wxPython` on Mac that worked for me is installing through Homebrew with `brew install wxpython`. I never tried on Linux, but it should be easy to be installed via either a standalone, or a package manager.
 
 ## How to run
 There are 4 ways to run this - 2 for each file:
