@@ -5,9 +5,20 @@ import wx.grid
 from utils_nextgen import *
 
 WINDOW_SIZE = 300
+process_running = 0
+
+def reference_counting(func):
+	''' Counting how many functions are being ran, to prevent data input. '''
+	def wrapper(*args, **kwargs):
+		global process_running
+		process_running += 1
+		func(*args, **kwargs)
+		process_running -= 1
+	return wrapper
 
 class MainFrame ( wx.Frame ):
 	
+	@reference_counting
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "ABC Endview Tools", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
@@ -118,7 +129,9 @@ class MainFrame ( wx.Frame ):
 		pass
 	
 	# change content of board
+	@reference_counting
 	def view_board(self):
+		self.status_bar.SetStatusText("Drawing the board...")
 		dim = get_dim(self.board)
 		
 		if self.dim > -1:
@@ -203,6 +216,10 @@ class MainFrame ( wx.Frame ):
 
 	# when the board is edited
 	def onEditBoard(self, event):
+		if process_running > 0:
+			event.Veto()
+			return
+
 		if self.convert_toggle.GetValue():
 			event.Veto()
 			return
@@ -238,15 +255,18 @@ class MainFrame ( wx.Frame ):
 		self.view_board()
 
 	# when change button is clicked
+	@reference_counting
 	def onChange(self, event):
 		self.change_dialog = InputDialog(self)
 		self.change_dialog.ShowModal()
 
 	# when reset button is clicked
+	@reference_counting
 	def onReset(self, event):
 		self.change_dialog.onOK(wx.EVT_BUTTON)
 
 	# when convert toggle is clicked
+	@reference_counting
 	def onConvert(self, event):
 		convert = self.convert_toggle.GetValue()
 		if convert:
@@ -262,6 +282,7 @@ class MainFrame ( wx.Frame ):
 
 class InputDialog ( wx.Dialog ):
 	
+	@reference_counting
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = "Edit board configuration", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP )
 		
@@ -322,6 +343,7 @@ class InputDialog ( wx.Dialog ):
 	def __del__( self ):
 		pass
 
+	@reference_counting
 	def onOK(self, event):
 		try:
 			self.Close()

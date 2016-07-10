@@ -1540,42 +1540,42 @@ def invert_transformation(func):
     '''
 
 # TODO: IMPLEMENT NULL CLUE COUNT
-def test_generate(dim, choices, diag = False, clue_count = 0, freq = None):
-    ''' Generate a board with clue_count number of clue.
-        Random until terminate.
-        '''
-    satisfied = False
-    choices = choices.upper()
-    len_choices = len(choices)
-    if dim > len(choices):
-        choices += 'X'
-    if clue_count == 0:
-        clue_count_min = 0
-    while not satisfied:
-        clue_count_2 = clue_count
-        board = generate_empty_board(dim)
-        constraint = generate_empty_constraint(dim)
-        populate_empty_board(board, choices)
+# def test_generate(dim, choices, diag = False, clue_count = 0, freq = None):
+#     ''' Generate a board with clue_count number of clue.
+#         Random until terminate.
+#         '''
+#     satisfied = False
+#     choices = choices.upper()
+#     len_choices = len(choices)
+#     if dim > len(choices):
+#         choices += 'X'
+#     if clue_count == 0:
+#         clue_count_min = 0
+#     while not satisfied:
+#         clue_count_2 = clue_count
+#         board = generate_empty_board(dim)
+#         constraint = generate_empty_constraint(dim)
+#         populate_empty_board(board, choices)
 
-        unfilled_clues = []
-        for i in range(4):
-            for j in range(dim):
-                unfilled_clues.append([i,j])
-        if freq is None:
-            while clue_count_2 > 0:
-                c = choices[random.randrange(len_choices)]
-                idx = random.randrange(len(unfilled_clues))
-                c_idx = unfilled_clues[idx]
-                constraint[c_idx[0]][c_idx[1]] = c
-                del unfilled_clues[idx]
-                clue_count_2 -= 1
-        else:
-            raise NotImplementedError()
-        convert_to_family_generator(board, constraint, choices)
-        satisfied = not solve(board, constraint, choices, diag, True)
-        sys.stdout.write('.')
-    log('\nfound one!\n', GUI)
-    log(stringify(board, constraint), GUI)
+#         unfilled_clues = []
+#         for i in range(4):
+#             for j in range(dim):
+#                 unfilled_clues.append([i,j])
+#         if freq is None:
+#             while clue_count_2 > 0:
+#                 c = choices[random.randrange(len_choices)]
+#                 idx = random.randrange(len(unfilled_clues))
+#                 c_idx = unfilled_clues[idx]
+#                 constraint[c_idx[0]][c_idx[1]] = c
+#                 del unfilled_clues[idx]
+#                 clue_count_2 -= 1
+#         else:
+#             raise NotImplementedError()
+#         convert_to_family_generator(board, constraint, choices)
+#         satisfied = not solve(board, constraint, choices, diag, True)
+#         sys.stdout.write('.')
+#     log('\nfound one!\n', GUI)
+#     log(stringify(board, constraint), GUI)
 
 
 # EXECUTION SECTION
