@@ -187,7 +187,6 @@ class MainFrame ( wx.Frame ):
 				if self.no_of_slns == 0:
 					self.board_table.SetCellValue(i+1, j+1, self.board[i][j])
 				else:
-					# print stringify(self.board, self.constraint, True)
 					if len(self.solution_board[i][j]) == 1:
 						char = self.solution_board[i][j]
 						if char == 'X':
@@ -213,6 +212,7 @@ class MainFrame ( wx.Frame ):
 			print "ERROR!"
 			print self.no_of_slns
 		self.status_bar.SetStatusText(status_text)
+		print stringify(self.board, self.constraint, True)
 
 	# when the board is edited
 	def onEditBoard(self, event):

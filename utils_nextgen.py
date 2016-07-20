@@ -1511,9 +1511,9 @@ def execute_changes(board, constraint, functions_used, swap_order,
         Includes optional reverse flag.
         '''
     
-    log(functions_used, DEV)
-    log(swap_order, DEV)
-    log(reverse, DEV)
+    # log(functions_used, DEV)
+    # log(swap_order, DEV)
+    # log(reverse, DEV)
     
     if reverse:
         for function in reversed(functions_used):
