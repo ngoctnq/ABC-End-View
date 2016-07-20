@@ -187,7 +187,7 @@ class MainFrame ( wx.Frame ):
 				if self.no_of_slns == 0:
 					self.board_table.SetCellValue(i+1, j+1, self.board[i][j])
 				else:
-					print stringify(self.board, self.constraint, True)
+					# print stringify(self.board, self.constraint, True)
 					if len(self.solution_board[i][j]) == 1:
 						char = self.solution_board[i][j]
 						if char == 'X':
@@ -264,16 +264,14 @@ class MainFrame ( wx.Frame ):
 	@reference_counting
 	def onReset(self, event):
 		self.change_dialog.onOK(wx.EVT_BUTTON)
+		self.convert_toggle.SetValue(False)
 
 	# when convert toggle is clicked
 	@reference_counting
 	def onConvert(self, event):
 		convert = self.convert_toggle.GetValue()
 		if convert:
-			if self.functions_used is None:
-				self.functions_used, self.swap_order = convert_to_family_generator(self.board, self.constraint, self.choices)
-			else:
-				execute_changes(self.board, self.constraint, self.functions_used, self.swap_order, False)
+			self.functions_used, self.swap_order = convert_to_family_generator(self.board, self.constraint, self.choices, [])
 		else:
 			execute_changes(self.board, self.constraint, self.functions_used, self.swap_order, True)
 		if self.solution_board is not None:

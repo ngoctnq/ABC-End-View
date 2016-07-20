@@ -1480,6 +1480,7 @@ def convert_to_family_generator(board, constraint, choices,
     return functions_used, swap_order
 
 def swap_letters_after_transformations(board, constraint, choices):
+    ''' Create a letter-swap order after transforming the board. '''
     list_of_chars = []
     for c in constraint[0]:
         if c not in list_of_chars:
@@ -1504,24 +1505,33 @@ def swap_letters_after_transformations(board, constraint, choices):
     swap_letters(board, constraint, list_of_chars)
     return list_of_chars
 
-def execute_changes(board, constraint, functions_used, swap_order, reverse = False):
-    ''' Revert all changes made, mostly from convert_to_family_generator. '''
+def execute_changes(board, constraint, functions_used, swap_order,
+                    reverse = False):
+    ''' Execute all changes in list, including swapping.
+        Includes optional reverse flag.
+        '''
+    
+    log(functions_used, DEV)
+    log(swap_order, DEV)
+    log(reverse, DEV)
+    
     if reverse:
-        for function in functions_used:
+        for function in reversed(functions_used):
             invert_transformation(function)(board, constraint)
-            sorted_swap = sorted(swap_order)
-            new_swap_order = [None] * len(swap_order)
-            for i in range(len(swap_order)):
-                old_char = sorted_swap[i]
-                new_char = swap_order[i]
-                new_swap_order[sorted_swap.index(new_char)] = old_char
-            swap_letters(board, constraint, new_swap_order) 
+        sorted_swap = sorted(swap_order)
+        new_swap_order = [None] * len(swap_order)
+        for i in range(len(swap_order)):
+            old_char = sorted_swap[i]
+            new_char = swap_order[i]
+            new_swap_order[sorted_swap.index(new_char)] = old_char
+        swap_letters(board, constraint, new_swap_order)
     else:
         for function in functions_used:
             function(board, constraint)
             swap_letters(board, constraint, swap_order)
 
 def invert_transformation(func):
+    ''' Return the complement transformation. '''
     if func is rotate_clockwise:
         return rotate_counter_clockwise
     elif func is rotate_counter_clockwise:
