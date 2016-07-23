@@ -167,7 +167,6 @@ def generate_endview_constraint(board):
                 j += 1
     return constraint
 
-
 if __name__ == '__main__':
     dim = int(sys.argv[1])
     choices = int(sys.argv[2])
