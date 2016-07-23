@@ -2,7 +2,12 @@
 import wx
 import wx.xrc
 import wx.grid
-from utils import *
+from utils_core import *
+from utils_transform import *
+from utils_input import not_cap_chars
+''' A puzzle builder GUI made with wxPython.
+    Ngoc Tran - 2016 || underlandian.com
+    '''
 
 WINDOW_SIZE = 300
 process_running = 0
@@ -209,8 +214,7 @@ class MainFrame ( wx.Frame ):
 		elif self.no_of_slns == 2:
 			status_text += '>1 solutions'
 		else:
-			print "ERROR!"
-			print self.no_of_slns
+			raise ValueError('short-circuited solve() should not return >2 solutions: ' + str(self.no_of_slns))
 		self.status_bar.SetStatusText(status_text)
 		print stringify(self.board, self.constraint, True)
 
