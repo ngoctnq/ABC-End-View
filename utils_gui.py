@@ -2,7 +2,7 @@
 import wx
 import wx.xrc
 import wx.grid
-from utils_nextgen import *
+from utils import *
 
 WINDOW_SIZE = 300
 process_running = 0

@@ -1055,7 +1055,7 @@ def generate_horizontal_border(dim, ljust_value = 1):
 
 def stringify(board, constraint = None, dev = False):
     ''' Return a pretty printing the board.
-        Reliant on '\n', be careful.
+        Reliant on '\\n', be careful.
         '''
     dim = len(board)
     ret = ''
