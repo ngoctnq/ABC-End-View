@@ -347,7 +347,6 @@ def input_gui():
     print 'All input taken!'
     return board, constraint, choices, diag
 
-
 def solve_main(no = -1):
     ''' Pretty printing the output of a solver.
         -1 triggers the input prompt, else get redirected to janko getter.
