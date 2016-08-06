@@ -2,27 +2,26 @@
 Something fun -- or supposed to be.
 
 ## General description
-- The solver, with commandline prompt is the method `solve_main(int)` in `utils.py`. The file requires imports from `BeautifulSoup4`.
-- The `int` parameter is problem number (1-530) from http://www.janko.at/Raetsel/Abc-End-View/index.htm, when input will tell the method to fetch it and solve. Otherwise, it will ask for input via CLI.
+- The solver, with commandline prompt is the method `solve_main(int)` in `utils_input.py`.
+- The `int` parameter is problem number (1-530) from http://www.janko.at/Raetsel/Abc-End-View/index.htm, when input will tell the method to fetch it and solve. If inserted `0`, it will ask for a problem number explicitly. If inserted `-1` or left blank, it will ask for input via CLI.
 
 A screenshot of the GUI - with the infamous Janko problem number 480:
 
 ![alt text](http://i.imgur.com/GRNVSAG.png "It has 46,670 solutions, so don't bother trying solving.")
 
-`utils.py` have properly-documented methods, some of them are nightly experimental, so feel free to meddle around. `test_generate()` is not completely implemented, but it will work if you explicitly give the `clue_count` parameter.
+`utils_*.py` have properly-documented methods, some of them are nightly experimental, so feel free to meddle around.
 
-The GUI is in `utils_gui.py`, which requires imports from wxPython. It is precompiled for Windows 10, 64-bit into the given executable. If it doesn't work, please run it from source.
+The GUI is in `utils_gui.py`, which requires imports from wxPython. Since the precompiled executable doesn't consistently run on all machines, please run from source.
 
 ## Dependencies
-Technically, you can comment out `BeautifulSoup4` and the fetch methods as it is already cached in the `janko_cache` folder. The `wxPython` module is required for GUI.
+`BeautifulSoup4` is required to fetch problems from Janko - however if it is already cached, it won't be imported, and thus is not needed. The `wxPython` module is required for GUI.
 
 `BeautifulSoup4` can be installed via `pip` for most OSes. `wxPython` has an installer that works fine on Windows, but messes up on El Capitan. Another way to get `wxPython` on Mac that worked for me is installing through Homebrew with `brew install wxpython`. I never tried on Linux, but it should be easy to be installed via either a standalone, or a package manager.
 
 ## How to run
-There are 4 ways to run this - 2 for each file:
-- Run `python utils_nextgen.py <problem_number>`.
-- Import `utils_nextgen.py` and invoke `solve_main()`.
-- Run the precompiled `utils_gui.exe`.
+There are 3 ways to run this - the first 2 are almost equivalent:
+- Run `python utils_input.py <problem_number>`.
+- Import `utils_input.py` and invoke `solve_main()`.
 - Run `python utils_gui.py`.
 
 ## How it works
